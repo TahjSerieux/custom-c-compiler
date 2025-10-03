@@ -1,0 +1,61 @@
+#include <string>
+#include <cstdio>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include "lexer.cpp"
+int main(int argc, char* argv[]){
+    if(argc<2){
+        std::cout<<"Source file was not provided";
+        return(-1);
+    }else{
+        std::cout<<"Processing Source File\n";
+        std::string sourceFile =  argv[1];
+        std::cout<<sourceFile<<'\n';
+
+        //Getting the file name to construct output file name for command
+        std::string command = "gcc -E -P " +  sourceFile;
+        size_t lastDot = sourceFile.find_last_of('.');
+        if(lastDot == std::string::npos){
+            std::cout<<"File has no extension";
+            return(-1);    
+        }
+        //replacing .c with .i of file name
+        std::string fileName = sourceFile.substr(0,lastDot);
+        std::string preprocessFileName =  fileName + ".i";
+        //constructing command to preprocess .c file
+        command += " -o " + preprocessFileName;
+        std::system(command.c_str());
+        //check if Preprocessed file is open
+        std::ifstream inputeFile(preprocessFileName);
+        if(!inputeFile.is_open()){
+            std::cerr << "Error: Could not open " << preprocessFileName << '\n';
+            return(-1);
+        }
+
+        std::stringstream buffer;
+        buffer<<inputeFile.rdbuf();
+        std::string fileContent = buffer.str();
+        inputeFile.close();
+
+        std::cout<<"File's content: \n"<<fileContent<<'\n\n';
+        
+        Lexer lexer{};
+        lexer.tokenize(fileContent);
+
+        std::cout<<"Tokens:\n";
+        lexer.printTokens();
+        // if(remove(preprocessFileName.c_str()) == 0){
+
+        //     std::cout<<"Deleted: "<<preprocessFileName<<'\n';
+        // }else{
+        //     std::perror("Error deleting file");
+                // std::cout << "Could not delete: " << preprocessFileName << '\n';
+        // }
+        
+        
+    }
+    
+    return(0);
+
+}
