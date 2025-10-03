@@ -2,6 +2,7 @@
 #include <string>
 #include <unordered_set>
 #include<iostream>
+#include<stdexcept>
 enum TokenType{
     KEYWORD,
     OPEN_PARENTHESIS,
@@ -86,14 +87,20 @@ class Lexer{
                     symbol +=  *it;
                     it++;
                 }
-                if(it!= end && isLetter(*it)){
-                    std::cout<<"Lexer error: encountered invalid symbol"<<'\n';
-                    exit(1);
+                if(it!= end && !isWhiteSpace(*it)){
+                    if(isLetter(*it) || *it=='@'){
+
+                        throw std::runtime_error("Invalid Symbol Detected: " + symbol +*it);
+                    }
                 }
             }else if(it != end &&type == IDENTIFIER){
                 while( it != end && (isLetter(*it) ||isDigit(*it))){
                     symbol += *it;
                     it++;
+                }
+                if(symbol == ""){
+                    throw std::runtime_error("Invalid Symbol Detected: " + symbol +*it);
+
                 }
             }
             return(symbol);
@@ -132,9 +139,11 @@ class Lexer{
                     tokens.push_back(t);
                     it++;
                 }else if(isDigit(*it)){
+                    //Expecting an valid number followed by a whitespace. (123L* is not valid L=[A-Z+a-z+_])
                     Token t{getSymbol(it, str.end(),CONSTANTS),CONSTANTS};
                     tokens.push_back(t);
-                }else{
+                }else if(isLetter(*it) || *it =='_'){
+                    //Expecting a Valid Identifier(words consisting of [A-Za-z]w*,w=[A-Z+a-z+0-9+_])
                     std::string symbol = getSymbol(it,str.end(),IDENTIFIER);
                     if(isKeyword(symbol)){
                         Token t(symbol,KEYWORD);
@@ -143,6 +152,8 @@ class Lexer{
                         Token t(symbol,IDENTIFIER);
                         tokens.push_back(t);
                     }
+                }else{
+                    throw std::runtime_error("Invalid Symbol Detected: "+std::string(1,*it));
                 }
             }
         }

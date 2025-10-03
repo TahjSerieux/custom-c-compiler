@@ -26,6 +26,7 @@ int main(int argc, char* argv[]){
         //constructing command to preprocess .c file
         command += " -o " + preprocessFileName;
         std::system(command.c_str());
+        std::cout<<"Created Preprocessed File: "<<preprocessFileName<<'\n';
         //check if Preprocessed file is open
         std::ifstream inputeFile(preprocessFileName);
         if(!inputeFile.is_open()){
@@ -38,24 +39,42 @@ int main(int argc, char* argv[]){
         std::string fileContent = buffer.str();
         inputeFile.close();
 
-        std::cout<<"File's content: \n"<<fileContent<<'\n\n';
+        // std::cout<<"File's content: \n"<<fileContent<<'\n\n';
         
         Lexer lexer{};
-        lexer.tokenize(fileContent);
+        try
+        {
+            lexer.tokenize(fileContent);
+            std::cout<<"Tokens:\n";
+            lexer.printTokens();
+            /* code */
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+            if(remove(preprocessFileName.c_str()) == 0){
+    
+                std::cout<<"Deleted: "<<preprocessFileName<<'\n';
+            }else{
+                std::perror("Error deleting file");
+                    std::cout << "Could not delete: " << preprocessFileName << '\n';
+            }
+            std::cout<<"Exiting as a failure\n";
+            return(-1);
+        }
+        
+        if(remove(preprocessFileName.c_str()) == 0){
 
-        std::cout<<"Tokens:\n";
-        lexer.printTokens();
-        // if(remove(preprocessFileName.c_str()) == 0){
+            std::cout<<"Deleted: "<<preprocessFileName<<'\n';
+        }else{
+            std::perror("Error deleting file");
+                std::cout << "Could not delete: " << preprocessFileName << '\n';
+        }
 
-        //     std::cout<<"Deleted: "<<preprocessFileName<<'\n';
-        // }else{
-        //     std::perror("Error deleting file");
-                // std::cout << "Could not delete: " << preprocessFileName << '\n';
-        // }
         
         
     }
-    
+    std::cout<<"Exiting as success\n";
     return(0);
 
 }
