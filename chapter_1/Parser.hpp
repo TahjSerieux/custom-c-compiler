@@ -7,12 +7,17 @@ class Parser{
     public:
         Parser(std::vector<Token> tokens);
         
-        std::vector<ProgramNode*> parseProgram();
+        ProgramNode* parseProgram();
         
 
     private:
         std::vector<Token> tokens;
         std::vector<Token>::iterator it;
+        ProgramNode* AST_Tree;
+        /*
+         if the current Token matches the expected token based on the syntax of the language. Auto advances the iterator 
+         to the next Token performs error checking.
+        */
         void expect(TokenType type,std::string value ="");
         std::string parseInt();
         

@@ -96,18 +96,30 @@ class FunctionDefinitionNode{
 class ProgramNode{
     public:
         ProgramNode(FunctionDefinitionNode* func){
-            this->function_definition =  func;
+            this->function_definitions.push_back(func);
         }
-        const FunctionDefinitionNode* get_function(){
-            return(this->function_definition);
+        ProgramNode(std::vector<FunctionDefinitionNode*>& funcs){
+            this->function_definitions= funcs;
+        }
+        ProgramNode(){
+            this->function_definitions = {};
+        }
+        void setFunctions(std::vector<FunctionDefinitionNode*>& v){
+            this->function_definitions = v;
+        }
+        const std::vector<FunctionDefinitionNode*> get_function(){
+            return(this->function_definitions);
         }
         void print(){
             // std::cout<<"Program(\n\t";
-            function_definition->print();
+            // function_definitions->print();
+            for(FunctionDefinitionNode* f : function_definitions){
+                f->print();
+            }
             // std::cout<<")\n";
         }
     private:
-        FunctionDefinitionNode* function_definition;
+        std::vector<FunctionDefinitionNode*> function_definitions;
 
 
 };

@@ -4,19 +4,19 @@ Parser::Parser(std::vector<Token> tokens){
             this->it =  this->tokens.begin();
         }
         
-std::vector<ProgramNode*> Parser::parseProgram(){
+ProgramNode* Parser::parseProgram(){
 
         /* code */
         // ProgramNode* program =new ProgramNode{parseFunction()};
         // if(it<this->tokens.end()){
         //     throw std::runtime_error("Error Parsing");
         // }
-        std::vector<ProgramNode*> programs;
+        std::vector<FunctionDefinitionNode*> functions;
         while(it != this->tokens.end()){
-            programs.push_back(new ProgramNode{parseFunction()});
+            functions.push_back(parseFunction());
         }
-
-        return(programs);
+        this->AST_Tree = new ProgramNode{functions};
+        return(AST_Tree);
     
 }
 

@@ -63,15 +63,17 @@ int main(int argc, char* argv[]){
             return(-1);
         }
         Parser parser{lexer.getTokens()};
+        ProgramNode* Program = nullptr;
         try
         {
-            std::vector<ProgramNode*> functions =  parser.parseProgram();
+            Program =  parser.parseProgram();
             
             // program->print();
             std::cout<<"Progam(\n";
-            for(ProgramNode* f: functions){
-                f->print();
-            }
+            // for(ProgramNode* f: functions){
+            //     f->print();
+            // }
+            Program->print();
             std::cout<<")\n";
         }
         catch(const std::exception& e)
