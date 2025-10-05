@@ -47,7 +47,6 @@ int main(int argc, char* argv[]){
             lexer.tokenize(fileContent);
             std::cout<<"Tokens:\n";
             lexer.printTokens();
-            /* code */
         }
         catch(const std::exception& e)
         {
@@ -62,7 +61,22 @@ int main(int argc, char* argv[]){
             std::cout<<"Exiting as a failure\n";
             return(-1);
         }
+        Parser parser{lexer.getTokens()};
+        try
+        {
+            ProgramNode* program =  parser.parseProgram();
+            program->print();
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
         
+        
+        
+
+
+        // ------------------------------------------------------------------------------------------------------------------------------------------
         if(remove(preprocessFileName.c_str()) == 0){
 
             std::cout<<"Deleted: "<<preprocessFileName<<'\n';

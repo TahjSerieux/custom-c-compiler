@@ -3,6 +3,8 @@
 #include <unordered_set>
 #include<iostream>
 #include<stdexcept>
+
+#include "AST.cpp"
 enum TokenType{
     KEYWORD,
     OPEN_PARENTHESIS,
@@ -29,7 +31,15 @@ class Token{
         TokenType getTokenType(){
             return(this->type);
         }
-        std::string token_to_string(TokenType type){
+        
+
+    private:
+        std::string value;
+        TokenType type;
+
+
+};
+std::string token_to_string(TokenType type){
             switch (type)
             {
                 case 0:
@@ -60,13 +70,9 @@ class Token{
                     return("UNKNOWN");
             }
         }
-
-    private:
-        std::string value;
-        TokenType type;
-
-
-};
+bool isDigit(char& c){
+    return(c >= '0'&&  c <='9');
+}   
 class Lexer{
     std::vector<Token> tokens;
     std::unordered_set<std::string> keywords={"int","return","void"};
@@ -74,9 +80,7 @@ class Lexer{
         bool isWhiteSpace(char& c){
             return(c == ' '|| c=='\t'|| c=='\n'||c=='\r');
         }
-        bool isDigit(char& c){
-            return(c >= '0'&&  c <='9');
-        }
+        
         bool isLetter(char& c){
             return((c >= 'a' && c <='z')||(c>='A' && c<='Z') || c== '_');
         }
@@ -159,7 +163,86 @@ class Lexer{
         }
         void printTokens(){
             for(Token t: tokens){
-                std::cout<<(t.token_to_string(t.getTokenType()))<<": "<<t.getValue()<<'\n';
+                std::cout<<(token_to_string(t.getTokenType()))<<": "<<t.getValue()<<'\n';
             }
         }
+        std::vector<Token> getTokens(){
+            return(this->tokens);
+        }
+
     };
+class Parser{
+    public:
+        Parser(std::vector<Token> tokens){
+            this->tokens = tokens;
+            this->it =  this->tokens.begin();
+        }
+        
+        ProgramNode* parseProgram(){
+ 
+                /* code */
+                return(new ProgramNode{parseFunction()});
+         
+        }
+        
+
+    private:
+        std::vector<Token> tokens;
+        std::vector<Token>::iterator it;
+        void expect(TokenType type,std::string value =""){
+            // std::cout<<"Expecting "<<token_to_string(type)<<" with value "<<value<<'\n';
+            // std::cout<<"(it) is pointing to:\ntype "<<token_to_string(it->getTokenType())<<" with value "<<it->getValue()<<'\n';
+            // std::cout<<"-------------------------------------------------------------------------------------------"<<'\n';
+            if(it == this->tokens.end()){
+                throw std::runtime_error("Reached the final token, no more tokens to parse");
+            }
+            if(it->getTokenType() != type || it->getValue() != value){
+                throw std::runtime_error("Expected Terminal "+ it->getValue()+ "of type: "+ token_to_string(it->getTokenType())+" but got:  "+ value +" of type: "+ token_to_string(type));
+            }
+            it++;
+
+        }
+        std::string parseInt(){
+            if( it->getTokenType() == CONSTANTS ){
+                std::string value =it->getValue();
+                it++;
+                return(value);
+            }
+            throw std::runtime_error("Expected Terminal CONSTANT but got: "+ it->getValue() +" of type: "+token_to_string(it->getTokenType()));
+        }
+        
+        ExpNode* parseExp(){
+            std::string constant = parseInt();
+            return (new ExpNode{constant});
+        }
+        StatementNode* parseStatement(){
+            expect(KEYWORD,"return");
+            ExpNode* exp =  parseExp();
+            expect(SEMICOLON,";");
+            // StatementNode* node = new StatementNode{exp};
+            return(new StatementNode{exp});
+        }
+        std::string parseIdentifier(){
+            if(it==tokens.end() || it->getTokenType() != IDENTIFIER){
+                throw std::runtime_error("Expected token of type IDENTIFIER");
+            }
+            std::string str = it->getValue();
+            it++;
+            return(str);
+        }
+        FunctionDefinitionNode* parseFunction(){
+            expect(KEYWORD,"int");
+            std::string name = parseIdentifier();
+            expect(OPEN_PARENTHESIS,"(");
+            expect(KEYWORD,"void");
+            expect(CLOSED_PARENTHESIS,")");
+            expect(OPEN_BRACKETS,"{");
+            StatementNode* function_body =  parseStatement();
+            expect(CLOSED_BRACKETS,"}");
+            return(new FunctionDefinitionNode{name,function_body});
+        }
+        
+
+
+
+};
