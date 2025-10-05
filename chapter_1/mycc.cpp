@@ -3,7 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "lexer.cpp"
+#include "Lexer.hpp"
+#include "Parser.hpp"
 int main(int argc, char* argv[]){
     if(argc<2){
         std::cout<<"Source file was not provided";
@@ -64,12 +65,27 @@ int main(int argc, char* argv[]){
         Parser parser{lexer.getTokens()};
         try
         {
-            ProgramNode* program =  parser.parseProgram();
-            program->print();
+            std::vector<ProgramNode*> functions =  parser.parseProgram();
+            
+            // program->print();
+            std::cout<<"Progam(\n";
+            for(ProgramNode* f: functions){
+                f->print();
+            }
+            std::cout<<")\n";
         }
         catch(const std::exception& e)
         {
             std::cerr << e.what() << '\n';
+            if(remove(preprocessFileName.c_str()) == 0){
+                
+                std::cout<<"Deleted: "<<preprocessFileName<<'\n';
+            }else{
+                std::perror("Error deleting file");
+                std::cout << "Could not delete: " << preprocessFileName << '\n';
+            }
+            std::cout<<"Exiting as a failure\n";
+            return(-1);
         }
         
         

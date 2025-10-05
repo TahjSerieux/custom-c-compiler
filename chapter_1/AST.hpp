@@ -1,3 +1,6 @@
+#ifndef AST_HPP
+#define AST_HPP
+
 #include <string>
 #include <iostream>
 enum ASTNodeType{program,function_definition,satement,exp};
@@ -77,7 +80,7 @@ class FunctionDefinitionNode{
             return(this->function_body);
         }
         void print(){
-            std::cout<<"Function(\n\t\t";
+            std::cout<<"\tFunction(\n\t\t";
             std::cout<<"name=\""<<name<<"\"\n";
             std::cout<< "\t\tbody=";function_body->print();
             std::cout<<"\t)\n";
@@ -99,12 +102,14 @@ class ProgramNode{
             return(this->function_definition);
         }
         void print(){
-            std::cout<<"Program(\n\t";
+            // std::cout<<"Program(\n\t";
             function_definition->print();
-            std::cout<<")\n";
+            // std::cout<<")\n";
         }
     private:
         FunctionDefinitionNode* function_definition;
 
 
 };
+
+#endif // AST_HPP
