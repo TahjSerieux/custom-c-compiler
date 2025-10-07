@@ -6,7 +6,6 @@
 #include<iostream>
 #include<stdexcept>
 
-#include "AST.hpp"
 #include "Token.hpp"
 
 class Lexer{

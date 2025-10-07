@@ -67,14 +67,14 @@ int main(int argc, char* argv[]){
         try
         {
             Program =  parser.parseProgram();
-            
+            std::cout<<"----------------\nPARSE SUCCESSFUL\n----------------\n";
             // program->print();
-            std::cout<<"Progam(\n";
+            // std::cout<<"Progam(\n";
             // for(ProgramNode* f: functions){
             //     f->print();
             // }
             Program->print();
-            std::cout<<")\n";
+            // std::cout<<")\n";
         }
         catch(const std::exception& e)
         {

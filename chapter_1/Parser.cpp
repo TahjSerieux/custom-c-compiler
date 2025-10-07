@@ -11,16 +11,16 @@ ProgramNode* Parser::parseProgram(){
         // if(it<this->tokens.end()){
         //     throw std::runtime_error("Error Parsing");
         // }
-        std::vector<FunctionDefinitionNode*> functions;
+        std::vector<FunctionNode*> functions;
         while(it != this->tokens.end()){
             functions.push_back(parseFunction());
+            // std::cout<<"THE FUNCTIONS IDENTIFER IS: "<<functions[functions.size()-1]->getIdentifer()<<'\n';
         }
-        this->AST_Tree = new ProgramNode{functions};
-        return(AST_Tree);
+
+        ProgramNode* AST_Root = new ProgramNode{functions};
+        return(AST_Root);
     
 }
-
-
 
 void Parser::expect(TokenType type,std::string value){
     // std::cout<<"Expecting "<<token_to_string(type)<<" with value "<<value<<'\n';
@@ -35,6 +35,15 @@ void Parser::expect(TokenType type,std::string value){
     it++;
 
 }
+
+std::string Parser::parseIdentifier(){
+    if(it==tokens.end() || it->getTokenType() != IDENTIFIER){
+        throw std::runtime_error("Expected token of type IDENTIFIER");
+    }
+    std::string str = it->getValue();
+    it++;
+    return(str);
+}
 std::string Parser::parseInt(){
     if(it == this->tokens.end()){
         throw std::runtime_error("Error processing tokens: Unexepectedly reach end of tokens");
@@ -47,31 +56,24 @@ std::string Parser::parseInt(){
 
     throw std::runtime_error("Expected Terminal CONSTANT but got: "+ it->getValue() +" of type: "+token_to_string(it->getTokenType()));
 }
-
-ExpNode* Parser::parseExp(){
+ExpressionNode* Parser::parseExpression(){
+    //If the current expression is a constant integer value i.e (54)
     std::string constant = parseInt();
-    
-    return (new ExpNode{constant});
+    //Need to implement binary operators in  the future
+    return (new ConstantNode{constant});
 }
 StatementNode* Parser::parseStatement(){
     expect(KEYWORD,"return");
     
-    ExpNode* exp =  parseExp();
+    ExpressionNode* exp =  parseExpression();
     expect(SEMICOLON,";");
     // StatementNode* node = new StatementNode{exp};
-    return(new StatementNode{exp});
+    return(new ReturnNode{exp});
 }
-std::string Parser::parseIdentifier(){
-    if(it==tokens.end() || it->getTokenType() != IDENTIFIER){
-        throw std::runtime_error("Expected token of type IDENTIFIER");
-    }
-    std::string str = it->getValue();
-    it++;
-    return(str);
-}
-FunctionDefinitionNode* Parser::parseFunction(){
+FunctionNode* Parser::parseFunction(){
     expect(KEYWORD,"int");
     std::string name = parseIdentifier();
+
     expect(OPEN_PARENTHESIS,"(");
     expect(KEYWORD,"void");
     expect(CLOSED_PARENTHESIS,")");
@@ -79,5 +81,5 @@ FunctionDefinitionNode* Parser::parseFunction(){
     StatementNode* function_body =  parseStatement();
 
     expect(CLOSED_BRACKETS,"}");
-    return(new FunctionDefinitionNode{name,function_body});
+    return(new FunctionNode{name,function_body});
 }
