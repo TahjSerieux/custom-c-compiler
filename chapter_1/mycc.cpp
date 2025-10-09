@@ -80,7 +80,7 @@ int main(int argc, char* argv[]){
             IRTree intermidate{ast};
             intermidate.transform();
             // intermidate.prettyPrint();
-            intermidate.filePrint();
+            intermidate.filePrint(fileName);
         }
         catch(const std::exception& e)
         {
@@ -95,10 +95,6 @@ int main(int argc, char* argv[]){
             std::cout<<"Exiting as a failure\n";
             return(-1);
         }
-        
-        
-        
-
 
         // ------------------------------------------------------------------------------------------------------------------------------------------
         if(remove(preprocessFileName.c_str()) == 0){

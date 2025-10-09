@@ -4,6 +4,7 @@
 // ======================================================
 //                     OperandNode
 // ======================================================
+
 OperandNode::OperandNode(OperandType t)
     : type(t) {}
 
@@ -13,6 +14,7 @@ OperandNode::~OperandNode() {}
 // ======================================================
 //                     ImmediateNode
 // ======================================================
+
 ImmediateNode::ImmediateNode(std::string val)
     : OperandNode(IMM), value(val) {}
 
@@ -28,14 +30,16 @@ void ImmediateNode::print() {
     std::cout << value;
 }
 
-void ImmediateNode::filePrint() {
+void ImmediateNode::filePrint(std::ofstream& assemblyFile) {
     std::cout << "$" << value;
+    assemblyFile << "$" << value;
 }
 
 
 // ======================================================
 //                     RegisterNode
 // ======================================================
+
 RegisterNode::RegisterNode(std::string reg)
     : OperandNode(REG), reg(reg) {}
 
@@ -51,14 +55,17 @@ void RegisterNode::print() {
     std::cout << reg;
 }
 
-void RegisterNode::filePrint() {
+void RegisterNode::filePrint(std::ofstream& assemblyFile) {
     std::cout << "%" << reg;
+    assemblyFile<<"%"<<reg;
+
 }
 
 
 // ======================================================
 //                     InstructionNode
 // ======================================================
+
 InstructionNode::InstructionNode(InstructionType t)
     : type(t) {}
 
@@ -66,6 +73,7 @@ InstructionNode::InstructionNode(InstructionType t)
 // ======================================================
 //                     MoveInstruction
 // ======================================================
+
 MoveInstruction::MoveInstruction(ImmediateNode* s, OperandNode* d)
     : InstructionNode(MOV), src(s), dst(d) {}
 
@@ -85,18 +93,22 @@ void MoveInstruction::print() {
     std::cout << ")\n";
 }
 
-void MoveInstruction::filePrint() {
-    std::cout << "movl ";
-    src->filePrint();
-    std::cout << ", ";
-    dst->filePrint();
-    std::cout << '\n';
+void MoveInstruction::filePrint(std::ofstream& assemblyFile) {
+    // std::cout << "movl ";
+    assemblyFile << "movl ";
+    src->filePrint(assemblyFile);
+    // std::cout << ", ";
+    assemblyFile << ", ";
+    dst->filePrint(assemblyFile);
+    // std::cout << '\n';
+    assemblyFile << '\n';
 }
 
 
 // ======================================================
 //                     IRReturnNode
 // ======================================================
+
 IRReturnNode::IRReturnNode(std::string reg)
     : InstructionNode(RET), reg(reg) {}
 
@@ -108,14 +120,16 @@ void IRReturnNode::print() {
     std::cout << "\t\t\tReturn(" << reg << ")\n";
 }
 
-void IRReturnNode::filePrint() {
+void IRReturnNode::filePrint(std::ofstream& assemblyFile) {
     std::cout << "ret\n";
+    assemblyFile << "ret\n";
 }
 
 
 // ======================================================
 //                     IRFunctionNode
 // ======================================================
+
 IRFunctionNode::IRFunctionNode(std::string identifier, std::vector<InstructionNode*> instr)
     : identifier(identifier), instructions(instr) {}
 
@@ -138,12 +152,15 @@ void IRFunctionNode::print() {
     std::cout << "\t)\n";
 }
 
-void IRFunctionNode::filePrint() {
-    std::cout << "\t.glob " << identifier << "\n";
+void IRFunctionNode::filePrint(std::ofstream& assemblyFile) {
+    std::cout << "\t.global " << identifier << "\n";
+    assemblyFile << "\t.global " << identifier << "\n";
     std::cout << identifier << ":\n";
+    assemblyFile<< identifier << ":\n";
     for (InstructionNode* i : instructions) {
+        assemblyFile << "\t";
         std::cout << "\t";
-        i->filePrint();
+        i->filePrint(assemblyFile);
     }
 }
 
@@ -151,6 +168,7 @@ void IRFunctionNode::filePrint() {
 // ======================================================
 //                     IRProgramNode
 // ======================================================
+
 IRProgramNode::IRProgramNode(std::vector<IRFunctionNode*> fs)
     : functions(fs) {}
 
@@ -160,21 +178,24 @@ void IRProgramNode::print() {
         f->print();
         std::cout << "\n";
     }
-    std::cout << "\n)\n";
+    std::cout << ")\n";
 }
 
-void IRProgramNode::filePrint() {
+void IRProgramNode::filePrint(std::ofstream& assemblyFile) {
     for (IRFunctionNode* f : functions) {
-        f->filePrint();
+        f->filePrint(assemblyFile);
         std::cout << '\n';
+        assemblyFile<<'\n';
     }
     std::cout << ".section .note.GNU-stack,\"\",@progbits\n";
+    assemblyFile<< ".section .note.GNU-stack,\"\",@progbits\n";
 }
 
 
 // ======================================================
 //                     IRTree
 // ======================================================
+
 IRTree::IRTree(AST ast)
     : ast_root(ast), root(nullptr) {}
 
@@ -193,10 +214,10 @@ std::vector<InstructionNode*> IRTree::traverseStatement(StatementNode* statement
         ReturnNode* returnNode = dynamic_cast<ReturnNode*>(statement);
         std::string value = traverseExpression(returnNode->getExpression());
 
-        ImmediateNode* immNode = new ImmediateNode{ value };
-        RegisterNode* regNode = new RegisterNode{ "eax" };
-        MoveInstruction* movInstruction = new MoveInstruction{ immNode, regNode };
-        IRReturnNode* retInstruction = new IRReturnNode{ "eax" };
+        ImmediateNode* immNode = new ImmediateNode(value);
+        RegisterNode* regNode = new RegisterNode("eax");
+        MoveInstruction* movInstruction = new MoveInstruction(immNode, regNode);
+        IRReturnNode* retInstruction = new IRReturnNode("eax");
 
         instructions.push_back(movInstruction);
         instructions.push_back(retInstruction);
@@ -211,15 +232,14 @@ std::vector<IRFunctionNode*> IRTree::traverseFunction(const std::vector<Function
     for (FunctionNode* f : functions) {
         std::string id = f->getIdentifer();
         std::vector<InstructionNode*> instructs = traverseStatement(f->getStatement());
-        programFunctions.push_back(new IRFunctionNode{ id, instructs });
+        programFunctions.push_back(new IRFunctionNode(id, instructs));
     }
 
     return programFunctions;
 }
 
 IRProgramNode* IRTree::traverseProgram(const ProgramNode* program) {
-    IRProgramNode* node = new IRProgramNode{ this->traverseFunction(program->getFunction()) };
-    return node;
+    return new IRProgramNode(this->traverseFunction(program->getFunction()));
 }
 
 void IRTree::transform() {
@@ -231,6 +251,9 @@ void IRTree::prettyPrint() {
     root->print();
 }
 
-void IRTree::filePrint() {
-    root->filePrint();
+void IRTree::filePrint(std::string assemblyFileName) {
+    // assemblyFile.open("assemblyFileName + "".s");
+    assemblyFile.open("Assembly.s");
+    root->filePrint(assemblyFile);
+    assemblyFile.close();
 }
