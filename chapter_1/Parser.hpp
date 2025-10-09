@@ -3,7 +3,7 @@
 #include<vector>
 #include<string>
 #include<stdexcept>
-#include "AST.cpp"
+#include "AST.hpp"
 #include"Token.hpp"
 class Parser{
     public:
@@ -15,7 +15,7 @@ class Parser{
     private:
         std::vector<Token> tokens;
         std::vector<Token>::iterator it;
-        ProgramNode* root;
+        // ProgramNode* root;
         /*
          if the current Token matches the expected token based on the syntax of the language. Auto advances the iterator 
          to the next Token performs error checking.

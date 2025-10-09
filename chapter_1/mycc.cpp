@@ -5,6 +5,8 @@
 #include <sstream>
 #include "Lexer.hpp"
 #include "Parser.hpp"
+#include "AST.hpp"
+#include "Assembly.hpp"
 int main(int argc, char* argv[]){
     if(argc<2){
         std::cout<<"Source file was not provided";
@@ -63,18 +65,22 @@ int main(int argc, char* argv[]){
             return(-1);
         }
         Parser parser{lexer.getTokens()};
-        ProgramNode* Program = nullptr;
+        // ProgramNode* Program = nullptr;
         try
         {
-            Program =  parser.parseProgram();
+            AST ast{parser.parseProgram()};
             std::cout<<"----------------\nPARSE SUCCESSFUL\n----------------\n";
             // program->print();
             // std::cout<<"Progam(\n";
             // for(ProgramNode* f: functions){
             //     f->print();
             // }
-            Program->print();
+            ast.PrettyPrint();
             // std::cout<<")\n";
+            IRTree intermidate{ast};
+            intermidate.transform();
+            // intermidate.prettyPrint();
+            intermidate.filePrint();
         }
         catch(const std::exception& e)
         {

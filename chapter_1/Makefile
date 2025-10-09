@@ -6,8 +6,8 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -g
 TARGET = mycc
 
 # Source files
-SOURCES = mycc.cpp Token.cpp Lexer.cpp Parser.cpp AST.cpp
-HEADERS = Token.hpp Lexer.hpp Parser.hpp 
+SOURCES = mycc.cpp Token.cpp Lexer.cpp Parser.cpp AST.cpp Assembly.cpp
+HEADERS = Token.hpp Lexer.hpp Parser.hpp AST.hpp Assembly.hpp
 
 # Object files
 OBJECTS = $(SOURCES:.cpp=.o)
