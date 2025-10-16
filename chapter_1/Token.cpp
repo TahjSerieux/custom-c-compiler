@@ -1,4 +1,3 @@
-#include<string>
 #include "Token.hpp"
 std::string token_to_string(TokenType type){
     switch (type)
@@ -27,6 +26,15 @@ std::string token_to_string(TokenType type){
         case 7:
             return("IDENTIFIER");
             break;
+        case 8:
+            return("DECREMENT");
+            break;
+        case 9:
+            return("TILDE");
+            break;
+        case 10:
+            return("HYPHEN");
+            break;
         default:
             return("UNKNOWN");
     }
@@ -38,6 +46,14 @@ Token::Token(std::string value, TokenType type){
 std::string Token::getValue(){
     return(this->value);
 }
-TokenType Token::getTokenType(){
+enum TokenType Token::getTokenType(){
     return(this->type);
+}
+
+std::unordered_set<TokenType> unaryOperators = {HYPHEN,TILDE};
+bool isUnaryOperator(Token t){
+    if(unaryOperators.find(t.getTokenType()) == unaryOperators.end()){
+        return(false);
+    }
+    return(true);
 }

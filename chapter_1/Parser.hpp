@@ -22,10 +22,11 @@ class Parser{
         */
         void expect(TokenType type,std::string value ="");
         std::string parseInt();
-        
+        UnaryNode* parseUnaryExpression();
         ExpressionNode* parseExpression();
         StatementNode* parseStatement();
         std::string parseIdentifier();
         FunctionNode* parseFunction();
+        std::vector<Token>::iterator parserPeek(int pos);
 };
 #endif

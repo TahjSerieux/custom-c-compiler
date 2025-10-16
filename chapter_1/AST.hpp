@@ -10,43 +10,57 @@
 //                     Enums
 // ======================================================
 
-enum ExpressionType { CONSTANT };
-enum StatementType  { RETURN };
-
-
+enum class ExpressionType { CONSTANT,UNARY };
+enum class StatementType  { RETURN };
+enum class UnaryOperator{Complement, Negation,Error};
+std::string unary_operator_to_string(UnaryOperator op);
 // ======================================================
 //                     ExpressionNode
 // ======================================================
 // Abstract Base class for all expressions (statements that evaluate to a value)
 class ExpressionNode {
-public:
-    virtual void print() = 0;
-    ExpressionType getType() const;
+    public:
+        virtual void print() = 0;
+        ExpressionType getType() const;
 
-protected:
-    ExpressionNode(ExpressionType t);
-    virtual const std::string getValue() = 0;
+        virtual const std::string getValue() = 0;
+    protected:
+        ExpressionNode(ExpressionType t);
 
-    ExpressionType type;
+        ExpressionType type;
 };
 
 
 // ======================================================
-//                     ConstantNode
+//                     ConstantNode:ExpressionNode
 // ======================================================
 class ConstantNode : public ExpressionNode {
-private:
-    std::string value;
+    private:
+        std::string value;
 
-public:
-    ConstantNode(std::string value);
-    ~ConstantNode();
+    public:
+        ConstantNode(std::string value);
+        ~ConstantNode();
 
-    void print() override;
-    const std::string getValue() override;
+        void print() override;
+        const std::string getValue() override;
+    };
+// ======================================================
+//                     UnaryNode:ExpressionNode
+// ======================================================
+    
+class UnaryNode: public ExpressionNode{
+    private:
+        UnaryOperator unary_operator;
+        ExpressionNode* exp;
+    public:
+        UnaryNode(UnaryOperator unary_operator, ExpressionNode* exp);
+        ~UnaryNode();
+        UnaryOperator get_unary_operator();
+        ExpressionNode* getExpression();
+        void print() override;
+        const std::string getValue() override;
 };
-
-
 // ======================================================
 //                     StatementNode
 // ======================================================

@@ -70,17 +70,13 @@ int main(int argc, char* argv[]){
         {
             AST ast{parser.parseProgram()};
             std::cout<<"----------------\nPARSE SUCCESSFUL\n----------------\n";
-            // program->print();
-            // std::cout<<"Progam(\n";
-            // for(ProgramNode* f: functions){
-            //     f->print();
-            // }
+            
             ast.PrettyPrint();
-            // std::cout<<")\n";
+
             IRTree intermidate{ast};
-            intermidate.transform();
+            // intermidate.transform();
             // intermidate.prettyPrint();
-            intermidate.filePrint(fileName);
+            // intermidate.filePrint(fileName);
         }
         catch(const std::exception& e)
         {
@@ -96,14 +92,14 @@ int main(int argc, char* argv[]){
             return(-1);
         }
 
-        // ------------------------------------------------------------------------------------------------------------------------------------------
-        if(remove(preprocessFileName.c_str()) == 0){
+        // // ------------------------------------------------------------------------------------------------------------------------------------------
+        // if(remove(preprocessFileName.c_str()) == 0){
 
-            std::cout<<"Deleted: "<<preprocessFileName<<'\n';
-        }else{
-            std::perror("Error deleting file");
-                std::cout << "Could not delete: " << preprocessFileName << '\n';
-        }
+        //     std::cout<<"Deleted: "<<preprocessFileName<<'\n';
+        // }else{
+        //     std::perror("Error deleting file");
+        //         std::cout << "Could not delete: " << preprocessFileName << '\n';
+        // }
 
         
         

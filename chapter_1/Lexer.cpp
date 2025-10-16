@@ -9,7 +9,11 @@
 #include "Token.hpp"
 #include "Lexer.hpp"
 
-
+std::string::iterator Lexer::lexerPeek(std::string::iterator& it,int pos){
+    std::string::iterator it2 =  it +pos;
+    // std::cout<<"it2: "<<*it2<<'\n';
+    return(it2);
+}
 bool Lexer::isWhiteSpace(char& c){
     return(c == ' '|| c=='\t'|| c=='\n'||c=='\r');
 }
@@ -77,11 +81,24 @@ void Lexer::tokenize(std::string str){
             Token t(";",SEMICOLON);
             tokens.push_back(t);
             it++;
+        }else if(*it == '-' && *lexerPeek(it,1)!='-'){
+            Token t("-",HYPHEN);
+            tokens.push_back(t);
+            it++;
+        }else if(*it == '-' && *lexerPeek(it,1)=='-'){
+            Token t("--",DECREMENT);
+            tokens.push_back(t);
+            it+=2;
+        }else if(*it == '~'){
+            Token t("~",TILDE);
+            tokens.push_back(t);
+            it++;
         }else if(isDigit(*it)){
             //Expecting an valid number followed by a whitespace. (123L* is not valid L=[A-Z+a-z+_])
             Token t(getSymbol(it, str.end(),CONSTANTS),CONSTANTS);
             tokens.push_back(t);
         }else if(isLetter(*it) || *it =='_'){
+            // std::cout<<"Symbol: "<<*it<<'\n';
             //Expecting a Valid Identifier(words consisting of [A-Za-z]w*,w=[A-Z+a-z+0-9+_])
             std::string symbol = getSymbol(it,str.end(),IDENTIFIER);
             if(isKeyword(symbol)){
@@ -105,4 +122,5 @@ void Lexer::printTokens(){
 std::vector<Token> Lexer::getTokens(){
     return(this->tokens);
 }
+
 

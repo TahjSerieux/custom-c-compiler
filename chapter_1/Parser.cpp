@@ -44,6 +44,20 @@ std::string Parser::parseIdentifier(){
     it++;
     return(str);
 }
+UnaryNode* Parser::parseUnaryExpression(){
+    TokenType type = this->it->getTokenType();
+    UnaryOperator unary;
+    if(type  == HYPHEN){
+        unary = UnaryOperator::Negation;
+    }else if(type == TILDE){
+        unary = UnaryOperator::Complement;
+    }else{
+        unary = UnaryOperator::Error;
+    }
+    it++;
+    return(new UnaryNode{unary,parseExpression()});
+    // return(nullptr);
+}
 std::string Parser::parseInt(){
     if(it == this->tokens.end()){
         throw std::runtime_error("Error processing tokens: Unexepectedly reach end of tokens");
@@ -58,9 +72,23 @@ std::string Parser::parseInt(){
 }
 ExpressionNode* Parser::parseExpression(){
     //If the current expression is a constant integer value i.e (54)
-    std::string constant = parseInt();
+    if(parserPeek(0)->getTokenType() == CONSTANTS ){
+        std::string constant = parseInt();
+        return (new ConstantNode{constant});
+    }else if(isUnaryOperator(*parserPeek(0))){
+        UnaryNode* node =  parseUnaryExpression();
+        return(node);
+    }else if(parserPeek(0)->getTokenType() == OPEN_PARENTHESIS){
+        expect(OPEN_PARENTHESIS,"("); 
+        ExpressionNode* node = parseExpression();
+        expect(CLOSED_PARENTHESIS,")"); 
+        return(node);
+        // it++;
+    }else{
+        throw std::runtime_error("Malformed Expression");\
+    }
     //Need to implement binary operators in  the future
-    return (new ConstantNode{constant});
+    // return (new ConstantNode{"constant"});
 }
 StatementNode* Parser::parseStatement(){
     expect(KEYWORD,"return");
@@ -73,7 +101,6 @@ StatementNode* Parser::parseStatement(){
 FunctionNode* Parser::parseFunction(){
     expect(KEYWORD,"int");
     std::string name = parseIdentifier();
-
     expect(OPEN_PARENTHESIS,"(");
     expect(KEYWORD,"void");
     expect(CLOSED_PARENTHESIS,")");
@@ -82,4 +109,12 @@ FunctionNode* Parser::parseFunction(){
 
     expect(CLOSED_BRACKETS,"}");
     return(new FunctionNode{name,function_body});
+}
+
+std::vector<Token>::iterator Parser::parserPeek(int pos) {
+    auto it2 = it;
+    std::advance(it2, pos);
+    if (it2 >= tokens.end())
+        throw std::runtime_error("Attempted to peek past end of tokens");
+    return it2;
 }

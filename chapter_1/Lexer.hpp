@@ -19,7 +19,7 @@ class Lexer{
         bool isDigit(char& c);
         std::string getSymbol(std::string::iterator& it, std::string::iterator end,TokenType type);
         bool isKeyword(std::string symbol);
-        
+        std::string::iterator lexerPeek(std::string::iterator& it,int pos);
     public:
         void tokenize(std::string str);
         void printTokens();

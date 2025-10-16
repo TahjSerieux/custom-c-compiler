@@ -94,13 +94,13 @@ void MoveInstruction::print() {
 }
 
 void MoveInstruction::filePrint(std::ofstream& assemblyFile) {
-    // std::cout << "movl ";
+    std::cout << "movl ";
     assemblyFile << "movl ";
     src->filePrint(assemblyFile);
-    // std::cout << ", ";
+    std::cout << ", ";
     assemblyFile << ", ";
     dst->filePrint(assemblyFile);
-    // std::cout << '\n';
+    std::cout << '\n';
     assemblyFile << '\n';
 }
 
@@ -200,7 +200,7 @@ IRTree::IRTree(AST ast)
     : ast_root(ast), root(nullptr) {}
 
 std::string IRTree::traverseExpression(ExpressionNode* expression) {
-    if (expression->getType() == CONSTANT) {
+    if (expression->getType() == ExpressionType::CONSTANT) {
         ConstantNode* constNode = dynamic_cast<ConstantNode*>(expression);
         return constNode->getValue();
     }
@@ -210,7 +210,7 @@ std::string IRTree::traverseExpression(ExpressionNode* expression) {
 std::vector<InstructionNode*> IRTree::traverseStatement(StatementNode* statement) {
     std::vector<InstructionNode*> instructions;
 
-    if (statement->getType() == RETURN) {
+    if (statement->getType() == StatementType::RETURN) {
         ReturnNode* returnNode = dynamic_cast<ReturnNode*>(statement);
         std::string value = traverseExpression(returnNode->getExpression());
 
@@ -253,7 +253,7 @@ void IRTree::prettyPrint() {
 
 void IRTree::filePrint(std::string assemblyFileName) {
     // assemblyFile.open("assemblyFileName + "".s");
-    assemblyFile.open("Assembly.s");
+    assemblyFile.open("../Assembly.s");
     root->filePrint(assemblyFile);
     assemblyFile.close();
 }
