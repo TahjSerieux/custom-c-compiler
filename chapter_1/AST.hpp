@@ -81,7 +81,7 @@ protected:
 
 
 // ======================================================
-//                     ReturnNode
+//                     ReturnNode:StatementNode
 // ======================================================
 class ReturnNode : public StatementNode {
 private:
