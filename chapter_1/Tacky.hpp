@@ -1,94 +1,132 @@
 #ifndef TACKY_H
 #define TACKY_H
 #include "AST.hpp"
+#include <iostream>
 
-class TackyVal{
-    public:
-        virtual ~TackyVal()=0;
-    private:
+// ======================================================
+//                     Base: TackyVal
+// ======================================================
+class TackyVal {
+public:
+    virtual ~TackyVal() = 0;
+    virtual void print() const = 0;
 };
+inline TackyVal::~TackyVal() {}
 
-class TackyConstant: public TackyVal{
-    public:
-        std::string getValue();
-        TackyConstant(std::string val);
-        ~TackyConstant();
+// ======================================================
+//                     TackyConstant : TackyVal
+// ======================================================
+class TackyConstant : public TackyVal {
     private:
         std::string value;
-};
-
-class TackyVariable:public TackyVal{
     public:
-        std::string getVariableIdentifier();
-        TackyVariable();
-        ~TackyVariable();
-    private:
-        std::string variableIdentifier();
+        TackyConstant(std::string val);
+        ~TackyConstant();
+
+        std::string getValue();
+        void print() const override;
 };
 
+// ======================================================
+//                     TackyVariable : TackyVal
+// ======================================================
+class TackyVariable : public TackyVal {
+private:
+    std::string variableIdentifier;
+public:
+    TackyVariable(std::string varIdentifier);
+    ~TackyVariable();
 
-class TackyInstruction{
+    std::string getVariableIdentifier();
+    void print() const override;
+};
+
+// ======================================================
+//                     Base: TackyInstruction
+// ======================================================
+
+class TackyInstruction {
     public:
         virtual ~TackyInstruction() = 0;
-    private:
+        virtual void print() const = 0;
+};
+inline TackyInstruction::~TackyInstruction() {}
+
+// ======================================================
+//                     TackyReturn : TackyInstruction
+// ======================================================
+class TackyReturn : public TackyInstruction {
+private:
+    TackyVal* var;
+public:
+    TackyReturn(TackyVal* var);
+    ~TackyReturn();
+
+    TackyVal* getVar();
+    void print() const override;
 };
 
-class TackyReturn: public TackyInstruction{
-    public:
+// ======================================================
+//                     TackyUnary : TackyInstruction
+// ======================================================
+class TackyUnary : public TackyInstruction {
+private:
+    UnaryOperator unary_operator;
+    TackyVal* src;
+    TackyVal* dst;
+public:
+    TackyUnary(UnaryOperator unary_operator, TackyVal* src, TackyVal* dst);
+    ~TackyUnary();
 
-        TackyReturn();
-        ~TackyReturn();
-        TackyVal* getExpression();
-    private:
-        TackyVal* val;
+    UnaryOperator getUnaryOperator();
+    TackyVal* getSrc();
+    TackyVal* getDst();
+
+    void print() const override;
 };
 
-class TackyUnary: public TackyVal{
-    public:
-        TackyUnary();
-        ~TackyUnary();
-        UnaryOperator getUnaryOperator();
-        TackyVariable getSrc();
-        TackyVariable getDst();
-    private:
-        UnaryOperator unary_operator;
-        TackyVariable src;
-        TackyVariable dst;
+// ======================================================
+//                     TackyFunction
+// ======================================================
+class TackyFunction {
+private:
+    std::string identifier;
+    std::vector<TackyInstruction*> body;
+public:
+    TackyFunction(std::string identifier, std::vector<TackyInstruction*> body);
+    std::string getIdentifier();
+    std::vector<TackyInstruction*> getBody();
 
+    void print() const;
 };
 
-class TackyFunction{
-    public:
-        TackyFunction();
-        std::string getIdentifier();
-        std::vector<TackyInstruction*> getBody();
-    private:
-        std::string identifier;
-        std::vector<TackyInstruction*> body;
-};
 // ======================================================
 //                     TackyProgram
 // ======================================================
-class TackyProgram{
-    public:
-        TackyProgram(std::vector<TackyFunction*> functions);
-        std::vector<TackyFunction*> getFunctions();
-    private:
-        std::vector<TackyFunction*> functions;
+class TackyProgram {
+private:
+    std::vector<TackyFunction*> functions;
+public:
+    TackyProgram(std::vector<TackyFunction*> functions);
+    std::vector<TackyFunction*> getFunctions();
+
+    void print() const;
 };
+
 // ======================================================
 //                     TackyGenerator
 // ======================================================
-class TackyGenerator{
-    public:
-        TackyGenerator();
-        std::string make_temporary();
-        void convertExpression(ExpressionNode* expression,std::vector<TackyInstruction*>& instructions);
-        std::vector<TackyInstruction*> convertInstructions(StatementNode* statement);
-        TackyFunction* convertFunction(FunctionNode*  function);
-        TackyProgram* convertProgram(AST* ast);
-    private:
-        int temp_counter;
+class TackyGenerator {
+private:
+    int temp_counter;
+public:
+    TackyGenerator();
+    std::string make_temporary();
+
+    TackyVal* convertExpression(ExpressionNode* expression, std::vector<TackyInstruction*>& instructions);
+    std::vector<TackyInstruction*> convertInstructions(StatementNode* statement);
+    TackyFunction* convertFunction(FunctionNode*  function);
+    TackyProgram* convertProgram(AST* ast);
 };
 
 #endif

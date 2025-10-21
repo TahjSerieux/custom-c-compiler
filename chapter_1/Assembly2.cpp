@@ -1,4 +1,4 @@
-#include "Assembly.hpp"
+#include "Assembly2.hpp"
 #include <iostream>
 
 // ======================================================
@@ -122,10 +122,10 @@ InstructionNode::InstructionNode(InstructionType t)
 //                     MoveInstruction:InstructionNode
 // ======================================================
 
-MoveInstruction::MoveInstruction(ImmediateNode* s, OperandNode* d)
+MoveInstruction::MoveInstruction(OperandNode* s, OperandNode* d)
     : InstructionNode(MOV), src(s), dst(d) {}
 
-ImmediateNode* MoveInstruction::getSrc(void) {
+OperandNode* MoveInstruction::getSrc(void) {
     return this->src;
 }
 
@@ -157,15 +157,15 @@ void MoveInstruction::filePrint(std::ofstream& assemblyFile) {
 //                     IRReturnNode:InstructionNode
 // ======================================================
 
-IRReturnNode::IRReturnNode(std::string reg)
-    : InstructionNode(RET), reg(reg) {}
+IRReturnNode::IRReturnNode()
+    : InstructionNode(RET){}
 
-std::string IRReturnNode::getReg(void) {
-    return this->reg;
-}
+// std::string IRReturnNode::getReg(void) {
+//     return this->reg;
+// }
 
 void IRReturnNode::print() {
-    std::cout << "\t\t\tReturn(" << reg << ")\n";
+    std::cout << "\t\t\tret\n";
 }
 
 void IRReturnNode::filePrint(std::ofstream& assemblyFile) {
@@ -183,6 +183,46 @@ UnaryOperator UnaryInstruction::getUnaryOperator(){
 }
 OperandNode* UnaryInstruction::getOperand(){
     return(this->operand);
+}
+
+void UnaryInstruction::print(){
+    std::string opStr;
+    switch (unary_operator) {
+        case UnaryOperator::Complement:
+            opStr = "notl";
+            break;
+        case UnaryOperator::Negation:
+            opStr = "negl";
+            break;
+        default:
+            opStr = "unknown_unary";
+    }
+
+    std::cout << opStr << " ";
+    operand->print();
+    std::cout << "\n";
+
+}
+void UnaryInstruction::filePrint(std::ofstream& assemblyFile) {
+    std::string opStr;
+    switch (unary_operator) {
+        case UnaryOperator::Complement:
+            opStr = "notl";
+            break;
+        case UnaryOperator::Negation:
+            opStr = "negl";
+            break;
+        default:
+            opStr = "unknown_unary";
+    }
+
+    std::cout << opStr << " ";
+    assemblyFile << opStr << " ";
+
+    operand->filePrint(assemblyFile);
+
+    std::cout << "\n";
+    assemblyFile << "\n";
 }
 // ======================================================
 //                     AllocateStack:InstructionNode
@@ -284,10 +324,10 @@ std::vector<InstructionNode*> IRTree::traverseStatement(StatementNode* statement
         ImmediateNode* immNode = new ImmediateNode(value);
         RegisterNode* regNode = new RegisterNode(RegisterName::R10);
         MoveInstruction* movInstruction = new MoveInstruction(immNode, regNode);
-        IRReturnNode* retInstruction = new IRReturnNode("eax");
+        // IRReturnNode* retInstruction = new IRReturnNode("eax");
 
         instructions.push_back(movInstruction);
-        instructions.push_back(retInstruction);
+        // instructions.push_back(retInstruction);
     }
 
     return instructions;
@@ -307,6 +347,69 @@ std::vector<IRFunctionNode*> IRTree::traverseFunction(const std::vector<Function
 
 IRProgramNode* IRTree::traverseProgram(const ProgramNode* program) {
     return new IRProgramNode(this->traverseFunction(program->getFunction()));
+}
+
+
+std::vector<InstructionNode*> IRTree::traverseTackyInstructions(std::vector<TackyInstruction*> instructions){
+    std::vector<InstructionNode*>  intermediateInstructions;
+    for(TackyInstruction* instr: instructions){
+        if(TackyReturn* tackyReturn = dynamic_cast<TackyReturn*>(instr)){
+            if(TackyConstant* tackyConstant =  dynamic_cast<TackyConstant*>(tackyReturn->getVar())){
+                ImmediateNode* imm = new ImmediateNode{tackyConstant->getValue()};
+                RegisterNode* reg = new RegisterNode{RegisterName::AX};
+                MoveInstruction* mov = new MoveInstruction{imm,reg};
+                intermediateInstructions.push_back(mov);
+                IRReturnNode* ret =  new IRReturnNode{};
+                intermediateInstructions.push_back(ret);
+            }else if(TackyVariable* tackyVar = dynamic_cast<TackyVariable*>(tackyReturn->getVar())){
+                Pseudo* psuedo = new Pseudo{tackyVar->getVariableIdentifier()};
+                RegisterNode* reg = new RegisterNode{RegisterName::AX};
+                MoveInstruction* mov = new MoveInstruction{psuedo,reg};
+                intermediateInstructions.push_back(mov);
+                IRReturnNode* ret =  new IRReturnNode{};
+                intermediateInstructions.push_back(ret);
+            }
+
+        }else if(TackyUnary* tackyUnary = dynamic_cast<TackyUnary*>(instr)){
+            UnaryOperator unaryOperator = tackyUnary->getUnaryOperator();
+            TackyVal* src = tackyUnary->getSrc();
+            TackyVal* dst = tackyUnary->getDst();
+
+            OperandNode* srcOp = nullptr;
+            OperandNode* dstOp = nullptr;
+            
+            if(TackyConstant* tackyConst =  dynamic_cast<TackyConstant*>(src)){
+                srcOp = new ImmediateNode{tackyConst->getValue()};
+            }else if(TackyVariable* tackyVar = dynamic_cast<TackyVariable*>(src)){
+                srcOp = new Pseudo{tackyVar->getVariableIdentifier()};
+            }
+
+            if(RegisterNode* regNode = dynamic_cast<RegisterNode*>(dst)){
+                dstOp =  new Pseudo{regNode->getRegStr()};
+            }
+
+            MoveInstruction* mov = new MoveInstruction(srcOp, dstOp);
+            intermediateInstructions.push_back(mov);
+
+            UnaryInstruction* unaryInstr = new UnaryInstruction{unaryOperator,dstOp};
+            intermediateInstructions.push_back(unaryInstr);
+
+        }   
+    }
+    return(intermediateInstructions);
+}
+
+std::vector<IRFunctionNode*> IRTree::traverseTackyFunction(std::vector<TackyFunction*> functions){
+    std::vector<IRFunctionNode*> programFunctions;
+    for(TackyFunction* f: functions){
+        std::string identifer =  f->getIdentifier();
+        std::vector<InstructionNode*> instructions = traverseTackyInstructions(f->getBody());
+        programFunctions.push_back(new IRFunctionNode{identifer,instructions});
+    }
+    return(programFunctions);
+}
+IRProgramNode* IRTree::traverseTackyProgram( TackyProgram* program){
+    return(new IRProgramNode{traverseTackyFunction(program->getFunctions())});
 }
 
 void IRTree::transform() {

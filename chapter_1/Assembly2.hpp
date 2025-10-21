@@ -5,7 +5,9 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <unordered_map>
 #include "AST.hpp"
+#include "Tacky.hpp"
 
 // ======================================================
 //                     Operand Types
@@ -124,9 +126,9 @@ class InstructionNode {
 // Represents a MOV instruction (data transfer)
 class MoveInstruction : public InstructionNode {
     public:
-        MoveInstruction(ImmediateNode* s, OperandNode* d);
+        MoveInstruction(OperandNode* s, OperandNode* d);
 
-        ImmediateNode* getSrc(void);
+        OperandNode* getSrc(void);
         OperandNode* getDst(void);
         void filePrint(std::ofstream& assemblyFile) override;
 
@@ -134,7 +136,7 @@ class MoveInstruction : public InstructionNode {
         void print() override;
 
     private:
-        ImmediateNode* src;
+        OperandNode* src;
         OperandNode* dst;
 };
 
@@ -145,14 +147,14 @@ class MoveInstruction : public InstructionNode {
 // Represents a RET instruction (function return)
 class IRReturnNode : public InstructionNode {
     public:
-        IRReturnNode(std::string reg);
+        IRReturnNode();
 
-        std::string getReg();
+        // std::string getReg();
         void print() override;
         void filePrint(std::ofstream& assemblyFile) override;
 
     private:
-        std::string reg;
+        // std::string reg;
 };
 // ======================================================
 //                     Unary:InstructionNode
@@ -165,6 +167,8 @@ class UnaryInstruction:public InstructionNode{
         UnaryInstruction(UnaryOperator unary_operator, OperandNode* operand);
         UnaryOperator getUnaryOperator();
         OperandNode* getOperand();
+        void print() override;
+        void filePrint(std::ofstream& assemblyFile) override;
 
 };
 
@@ -221,6 +225,7 @@ class IRProgramNode {
 // Transforms an AST into an IR tree representation
 class IRTree {
     private:
+
         AST ast_root;
         IRProgramNode* root;
         std::ofstream assemblyFile;
@@ -228,6 +233,12 @@ class IRTree {
         std::vector<InstructionNode*> traverseStatement(StatementNode* statement);
         std::vector<IRFunctionNode*> traverseFunction(const std::vector<FunctionNode*> functions);
         IRProgramNode* traverseProgram(const ProgramNode* program);
+        
+        
+        std::string traverseTackyExpression(TackyVal* expression);
+        std::vector<InstructionNode*> traverseTackyInstructions(std::vector<TackyInstruction*> instructions);
+        std::vector<IRFunctionNode*> traverseTackyFunction( std::vector<TackyFunction*> functions);
+       IRProgramNode* traverseTackyProgram( TackyProgram* program);
 
     public:
         IRTree(AST a);
@@ -235,6 +246,7 @@ class IRTree {
         void transform();
         void prettyPrint();
         void filePrint(std::string assemblyFileName);
+
 };
 
 #endif
