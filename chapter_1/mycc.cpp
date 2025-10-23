@@ -6,7 +6,7 @@
 #include "Lexer.hpp"
 #include "Parser.hpp"
 #include "AST.hpp"
-#include "Assembly.hpp"
+#include "Assembly2.hpp"
 int main(int argc, char* argv[]){
     if(argc<2){
         std::cout<<"Source file was not provided";
@@ -72,12 +72,19 @@ int main(int argc, char* argv[]){
             std::cout<<"----------------\nPARSE SUCCESSFUL\n----------------\n";
             
             ast.PrettyPrint();
-
-            IRTree intermidate{ast};
-            // intermidate.transform();
-            // intermidate.prettyPrint();
-            // intermidate.filePrint(fileName);
+            TackyGenerator tackyGenerator{};
+            TackyProgram* tackyProgram = tackyGenerator.convertProgram(&ast);
+            tackyProgram->prettyPrint();
+            std::cout<<"-------------------------------------------------------------------------------\n";
+            IRTree intermidate{};
+            intermidate.transformFromTacky(tackyProgram);
+            intermidate.replacePseudoOperands();
+            intermidate.filePrint(fileName);
         }
+        // IRTree intermidate{ast};
+        // intermidate.transform();
+        // // TackyProgram* tackyProgram =  intermidate.
+        // // intermidate.prettyPrint();
         catch(const std::exception& e)
         {
             std::cerr << e.what() << '\n';

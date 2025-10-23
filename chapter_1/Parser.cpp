@@ -6,15 +6,10 @@ Parser::Parser(std::vector<Token> tokens){
         
 ProgramNode* Parser::parseProgram(){
 
-        /* code */
-        // ProgramNode* program =new ProgramNode{parseFunction()};
-        // if(it<this->tokens.end()){
-        //     throw std::runtime_error("Error Parsing");
-        // }
+
         std::vector<FunctionNode*> functions;
         while(it != this->tokens.end()){
             functions.push_back(parseFunction());
-            // std::cout<<"THE FUNCTIONS IDENTIFER IS: "<<functions[functions.size()-1]->getIdentifer()<<'\n';
         }
 
         ProgramNode* AST_Root = new ProgramNode{functions};
@@ -23,14 +18,14 @@ ProgramNode* Parser::parseProgram(){
 }
 
 void Parser::expect(TokenType type,std::string value){
-    // std::cout<<"Expecting "<<token_to_string(type)<<" with value "<<value<<'\n';
-    // std::cout<<"(it) is pointing to:\ntype "<<token_to_string(it->getTokenType())<<" with value "<<it->getValue()<<'\n';
-    // std::cout<<"-------------------------------------------------------------------------------------------"<<'\n';
     if(it == this->tokens.end()){
         throw std::runtime_error("Reached the final token, no more tokens to parse");
     }
     if(it->getTokenType() != type || it->getValue() != value){
-        throw std::runtime_error("Expected Terminal "+ it->getValue()+ "of type: "+ token_to_string(it->getTokenType())+" but got:  "+ value +" of type: "+ token_to_string(type));
+        throw std::runtime_error(
+        "Expected Terminal '" + value + "' of type: " + token_to_string(type) +
+        " but got: '" + it->getValue() + "' of type: " + token_to_string(it->getTokenType())
+    );
     }
     it++;
 
@@ -77,13 +72,13 @@ ExpressionNode* Parser::parseExpression(){
         return (new ConstantNode{constant});
     }else if(isUnaryOperator(*parserPeek(0))){
         UnaryNode* node =  parseUnaryExpression();
+        // node->print();std::cout<<'\n';
         return(node);
     }else if(parserPeek(0)->getTokenType() == OPEN_PARENTHESIS){
         expect(OPEN_PARENTHESIS,"("); 
         ExpressionNode* node = parseExpression();
         expect(CLOSED_PARENTHESIS,")"); 
         return(node);
-        // it++;
     }else{
         throw std::runtime_error("Malformed Expression");\
     }

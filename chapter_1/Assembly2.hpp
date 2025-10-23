@@ -8,7 +8,9 @@
 #include <unordered_map>
 #include "AST.hpp"
 #include "Tacky.hpp"
-
+static inline void indent(int n) {
+    std::cout << std::string(n * 2, ' ');
+}
 // ======================================================
 //                     Operand Types
 // ======================================================
@@ -27,6 +29,7 @@ class OperandNode {
         virtual OperandType getType(void) = 0;
         virtual void print() = 0;
         virtual void filePrint(std::ofstream& assemblyFile) = 0;
+        virtual void prettyPrint(int indent = 0) const = 0; // <-- NEW
 
     protected:
         OperandNode(OperandType t);
@@ -46,11 +49,11 @@ class ImmediateNode : public OperandNode {
         OperandType getType(void) override;
         void print() override;
         void filePrint(std::ofstream& assemblyFile) override;
+        void prettyPrint(int indent = 0) const override; // <-- NEW
 
     private:
         const std::string value;
 };
-
 
 // ======================================================
 //                     RegisterNode:OperandNode
@@ -61,10 +64,11 @@ class RegisterNode : public OperandNode {
         RegisterNode(RegisterName reg);
 
         RegisterName getRegEnum(void) const;
-        std::string getRegStr(void) const;  // Convert enum to string
+        std::string getRegStr(void) const;
         OperandType getType(void) override;
         void print() override;
         void filePrint(std::ofstream& assemblyFile) override;
+        void prettyPrint(int indent = 0) const override; // <-- NEW
 
     private:
         const RegisterName reg;
@@ -73,32 +77,35 @@ class RegisterNode : public OperandNode {
 // ======================================================
 //                     Pseudo:OperandNode
 // ======================================================
-class Pseudo: public OperandNode{
-    private:
-        std::string identifier;
-    
+class Pseudo : public OperandNode {
     public:
         Pseudo(std::string identifier);
-        std::string getIdentifer();
+        std::string getIdentifier();
         OperandType getType() override;
         void print() override;
         void filePrint(std::ofstream& assemblyFile) override;
+        void prettyPrint(int indent = 0) const override; // <-- NEW
 
+    private:
+        std::string identifier;
 };
 
 // ======================================================
 //                     Stack:OperandNode
 // ======================================================
-class Stack: public OperandNode{
-    private:
-        int amount;
+class Stack : public OperandNode {
     public:
         Stack(int amount);
         int getAmount();
         OperandType getType(void) override;
         void print() override;
         void filePrint(std::ofstream& assemblyFile) override;
+        void prettyPrint(int indent = 0) const override; // <-- NEW
+
+    private:
+        int amount;
 };
+
 // ======================================================
 //                     Instruction Types
 // ======================================================
@@ -113,7 +120,8 @@ class InstructionNode {
     public:
         virtual void print() = 0;
         virtual void filePrint(std::ofstream& assemblyFile) = 0;
-
+        virtual void prettyPrint(int indent = 0) const = 0; // <-- NEW
+        InstructionType getType();
     protected:
         InstructionNode(InstructionType t);
         InstructionType type;
@@ -130,10 +138,12 @@ class MoveInstruction : public InstructionNode {
 
         OperandNode* getSrc(void);
         OperandNode* getDst(void);
-        void filePrint(std::ofstream& assemblyFile) override;
+        void setSrc(OperandNode* newSrc);
+        void setDst(OperandNode* newDst);
 
-    protected:
+        void filePrint(std::ofstream& assemblyFile) override;
         void print() override;
+        void prettyPrint(int indent = 0) const override; // <-- NEW
 
     private:
         OperandNode* src;
@@ -149,40 +159,41 @@ class IRReturnNode : public InstructionNode {
     public:
         IRReturnNode();
 
-        // std::string getReg();
         void print() override;
         void filePrint(std::ofstream& assemblyFile) override;
-
-    private:
-        // std::string reg;
+        void prettyPrint(int indent = 0) const override; // <-- NEW
 };
+
 // ======================================================
 //                     Unary:InstructionNode
 // ======================================================
-class UnaryInstruction:public InstructionNode{
+class UnaryInstruction : public InstructionNode {
+    public:
+        UnaryInstruction(UnaryOperator unary_operator, OperandNode* operand);
+
+        UnaryOperator getUnaryOperator();
+        OperandNode* getOperand();
+        void setOperand(OperandNode* newOp);
+        void print() override;
+        void filePrint(std::ofstream& assemblyFile) override;
+        void prettyPrint(int indent = 0) const override; // <-- NEW
+
     private:
         UnaryOperator unary_operator;
         OperandNode* operand;
-    public:
-        UnaryInstruction(UnaryOperator unary_operator, OperandNode* operand);
-        UnaryOperator getUnaryOperator();
-        OperandNode* getOperand();
-        void print() override;
-        void filePrint(std::ofstream& assemblyFile) override;
-
 };
 
 // ======================================================
 //                     AllocateStack:InstructionNode
 // ======================================================
-class AllocateStack: public InstructionNode{
+class AllocateStack : public InstructionNode {
     private:
         int amount;
     public:
         AllocateStack(int amount);
         int getAmount();
+        void prettyPrint(int indent = 0) const override; // <-- NEW
 };
-
 // ======================================================
 //                     IRFunctionNode
 // ======================================================
@@ -196,6 +207,7 @@ class IRFunctionNode {
 
         void print();
         void filePrint(std::ofstream& assemblyFile);
+        void prettyPrint(int indent = 0) const; // <-- NEW
 
     private:
         std::string identifier;
@@ -213,6 +225,8 @@ class IRProgramNode {
 
         void print();
         void filePrint(std::ofstream& assemblyFile);
+        void prettyPrint(int indent = 0) const; // <-- NEW
+        std::vector<IRFunctionNode*> getFunctions();
 
     private:
         std::vector<IRFunctionNode*> functions;
@@ -229,23 +243,39 @@ class IRTree {
         AST ast_root;
         IRProgramNode* root;
         std::ofstream assemblyFile;
-        std::string traverseExpression(ExpressionNode* expression);
-        std::vector<InstructionNode*> traverseStatement(StatementNode* statement);
-        std::vector<IRFunctionNode*> traverseFunction(const std::vector<FunctionNode*> functions);
-        IRProgramNode* traverseProgram(const ProgramNode* program);
+        // std::string traverseExpression(ExpressionNode* expression);
+        // std::vector<InstructionNode*> traverseStatement(StatementNode* statement);
+        // std::vector<IRFunctionNode*> traverseFunction(const std::vector<FunctionNode*> functions);
+        // IRProgramNode* traverseProgram(const ProgramNode* program);
         
         
         std::string traverseTackyExpression(TackyVal* expression);
         std::vector<InstructionNode*> traverseTackyInstructions(std::vector<TackyInstruction*> instructions);
         std::vector<IRFunctionNode*> traverseTackyFunction( std::vector<TackyFunction*> functions);
-       IRProgramNode* traverseTackyProgram( TackyProgram* program);
+        IRProgramNode* traverseTackyProgram( TackyProgram* program);
 
+
+        OperandNode* replacePseudoNode(OperandNode* operand, std::unordered_map<std::string, int>& pseudoOffesets, int& currentOffset);
+        std::unordered_map<std::string, int> pseudoOffsets;
+        int currentOffset = -4;
     public:
         IRTree(AST a);
-
+        IRTree();
+        int& getCurrentOffset();
+        std::unordered_map<std::string, int>& getPseudoOffsets();
         void transform();
         void prettyPrint();
         void filePrint(std::string assemblyFileName);
+        IRProgramNode* transformFromTacky(TackyProgram*);
+        void replacePseudoOperands();
+};
+class PseudoReplacer{
+    private:
+        std::unordered_map<std::string, int>& offsets;
+        int& currentFreeOffset;
+    public:
+        PseudoReplacer(std::unordered_map<std::string,int>& pseudoOffsets, int& currentOffset);
+        OperandNode* replace(OperandNode* op,std::unordered_set<Pseudo*>& pseudoNodes);
 
 };
 

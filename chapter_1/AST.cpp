@@ -6,6 +6,7 @@ std::string unary_operator_to_string(UnaryOperator op){
     switch(op) {
         case UnaryOperator::Negation: return "-";
         case UnaryOperator::Complement: return "~";
+        case UnaryOperator::Error: return "Error";
     }
     return ""; // optional default, to silence compiler warnings
 }
@@ -129,7 +130,7 @@ std::vector<FunctionNode*> ProgramNode::getFunction() const{
 //                     AST
 // ======================================================
 AST::AST(ProgramNode* root):root(root){}
-
+AST::AST():root(nullptr){}
 void AST::PrettyPrint() const{
     root->print();
 }

@@ -1,5 +1,6 @@
 #include "Assembly2.hpp"
 #include <iostream>
+#include<limits.h>
 
 // ======================================================
 //                     OperandNode
@@ -35,7 +36,10 @@ void ImmediateNode::filePrint(std::ofstream& assemblyFile) {
     assemblyFile << "$" << value;
 }
 
-
+void ImmediateNode::prettyPrint(int indentLevel) const {
+    indent(indentLevel);
+    std::cout << "Immediate(" << value << ")\n";
+}
 // ======================================================
 //                     RegisterNode:OperandNode
 // ======================================================
@@ -67,12 +71,15 @@ void RegisterNode::filePrint(std::ofstream& assemblyFile) {
     assemblyFile<<"%"<<getRegStr();
 
 }
-
+void RegisterNode::prettyPrint(int indentLevel) const {
+    indent(indentLevel);
+    std::cout << "Register(" << getRegStr() << ")\n";
+}
 // ======================================================
 //                     Pseudo:OperandNode
 // ======================================================
 Pseudo::Pseudo(std::string identifier):OperandNode(PSEUDO), identifier(identifier){}
-std::string Pseudo::getIdentifer(){
+std::string Pseudo::getIdentifier(){
     return(this->identifier);
 }
 
@@ -81,11 +88,15 @@ OperandType Pseudo::getType(){
 }
 
 void Pseudo::print(){
-
+    std::cout<<identifier;
 }
 
 void Pseudo::filePrint(std::ofstream& assemblyFile){
-
+    std::cout<<identifier;
+}
+void Pseudo::prettyPrint(int indentLevel) const {
+    indent(indentLevel);
+    std::cout << "Pseudo(" << identifier << ")\n";
 }
 
 // ======================================================
@@ -110,6 +121,12 @@ void Stack::filePrint(std::ofstream& assemblyFile){
     std::cout << amount << "(%rbp)";
     assemblyFile << amount << "(%rbp)";
 }
+
+void Stack::prettyPrint(int indentLevel) const {
+    indent(indentLevel);
+    std::cout << "Stack(offset=" << amount << ")\n";
+}
+
 // ======================================================
 //                     InstructionNode(Base)
 // ======================================================
@@ -117,7 +134,9 @@ void Stack::filePrint(std::ofstream& assemblyFile){
 InstructionNode::InstructionNode(InstructionType t)
     : type(t) {}
 
-
+InstructionType InstructionNode::getType(){
+    return(this->type);
+}
 // ======================================================
 //                     MoveInstruction:InstructionNode
 // ======================================================
@@ -142,8 +161,14 @@ void MoveInstruction::print() {
 }
 
 void MoveInstruction::filePrint(std::ofstream& assemblyFile) {
+
+    
     std::cout << "movl ";
     assemblyFile << "movl ";
+
+
+
+
     src->filePrint(assemblyFile);
     std::cout << ", ";
     assemblyFile << ", ";
@@ -152,7 +177,25 @@ void MoveInstruction::filePrint(std::ofstream& assemblyFile) {
     assemblyFile << '\n';
 }
 
+void MoveInstruction::setSrc(OperandNode* newSrc){
+    this->src =  newSrc;
+}
+void MoveInstruction::setDst(OperandNode* newDst){
+    this->dst =  newDst;
+}
 
+void MoveInstruction::prettyPrint(int indentLevel) const {
+    indent(indentLevel);
+    std::cout << "MoveInstruction(\n";
+    indent(indentLevel + 1);
+    std::cout << "src: ";
+    src->prettyPrint(indentLevel + 2);
+    indent(indentLevel + 1);
+    std::cout << "dst: ";
+    dst->prettyPrint(indentLevel + 2);
+    indent(indentLevel);
+    std::cout << ")\n";
+}
 // ======================================================
 //                     IRReturnNode:InstructionNode
 // ======================================================
@@ -173,6 +216,12 @@ void IRReturnNode::filePrint(std::ofstream& assemblyFile) {
     assemblyFile << "ret\n";
 }
 
+
+void IRReturnNode::prettyPrint(int indentLevel) const {
+    indent(indentLevel);
+    std::cout << "ReturnInstruction()\n";
+}
+
 // ======================================================
 //                     Unary:InstructionNode
 // ======================================================
@@ -183,6 +232,10 @@ UnaryOperator UnaryInstruction::getUnaryOperator(){
 }
 OperandNode* UnaryInstruction::getOperand(){
     return(this->operand);
+}
+
+void UnaryInstruction::setOperand(OperandNode* newOp){
+    this->operand = newOp;
 }
 
 void UnaryInstruction::print(){
@@ -224,6 +277,18 @@ void UnaryInstruction::filePrint(std::ofstream& assemblyFile) {
     std::cout << "\n";
     assemblyFile << "\n";
 }
+
+void UnaryInstruction::prettyPrint(int indentLevel) const {
+    indent(indentLevel);
+    std::cout << "UnaryInstruction(op=";
+    switch (unary_operator) {
+        case UnaryOperator::Negation: std::cout << "Neg"; break;
+        case UnaryOperator::Complement: std::cout << "Not"; break;
+        default: std::cout << "Unknown"; break;
+    }
+    std::cout << ")\n";
+    operand->prettyPrint(indentLevel + 1);
+}
 // ======================================================
 //                     AllocateStack:InstructionNode
 // ======================================================
@@ -232,6 +297,11 @@ AllocateStack::AllocateStack(int amount):InstructionNode(ALLOCATE), amount(amoun
 
 int AllocateStack::getAmount(){
     return(this->amount);
+}
+
+void AllocateStack::prettyPrint(int indentLevel) const {
+    indent(indentLevel);
+    std::cout << "AllocateStack(bytes=" << amount << ")\n";
 }
 // ======================================================
 //                     IRFunctionNode
@@ -264,13 +334,24 @@ void IRFunctionNode::filePrint(std::ofstream& assemblyFile) {
     assemblyFile << "\t.global " << identifier << "\n";
     std::cout << identifier << ":\n";
     assemblyFile<< identifier << ":\n";
+
     for (InstructionNode* i : instructions) {
         assemblyFile << "\t";
         std::cout << "\t";
+
         i->filePrint(assemblyFile);
     }
 }
 
+void IRFunctionNode::prettyPrint(int indentLevel) const {
+    indent(indentLevel);
+    std::cout << "Function " << identifier << " {\n";
+    for (auto* instr : instructions) {
+        instr->prettyPrint(indentLevel + 1);
+    }
+    indent(indentLevel);
+    std::cout << "}\n";
+}
 
 // ======================================================
 //                     IRProgramNode
@@ -289,6 +370,7 @@ void IRProgramNode::print() {
 }
 
 void IRProgramNode::filePrint(std::ofstream& assemblyFile) {
+    // std::cout<<"HERE\n";
     for (IRFunctionNode* f : functions) {
         f->filePrint(assemblyFile);
         std::cout << '\n';
@@ -299,55 +381,22 @@ void IRProgramNode::filePrint(std::ofstream& assemblyFile) {
 }
 
 
+void IRProgramNode::prettyPrint(int indentLevel) const {
+    indent(indentLevel);
+    std::cout << "Program [\n";
+    for (auto* fn : functions) {
+        fn->prettyPrint(indentLevel + 1);
+    }
+    indent(indentLevel);
+    std::cout << "]\n";
+}
 // ======================================================
 //                     IRTree
 // ======================================================
 
 IRTree::IRTree(AST ast)
     : ast_root(ast), root(nullptr) {}
-
-std::string IRTree::traverseExpression(ExpressionNode* expression) {
-    if (expression->getType() == ExpressionType::CONSTANT) {
-        ConstantNode* constNode = dynamic_cast<ConstantNode*>(expression);
-        return constNode->getValue();
-    }
-    return "";
-}
-
-std::vector<InstructionNode*> IRTree::traverseStatement(StatementNode* statement) {
-    std::vector<InstructionNode*> instructions;
-
-    if (statement->getType() == StatementType::RETURN) {
-        ReturnNode* returnNode = dynamic_cast<ReturnNode*>(statement);
-        std::string value = traverseExpression(returnNode->getExpression());
-
-        ImmediateNode* immNode = new ImmediateNode(value);
-        RegisterNode* regNode = new RegisterNode(RegisterName::R10);
-        MoveInstruction* movInstruction = new MoveInstruction(immNode, regNode);
-        // IRReturnNode* retInstruction = new IRReturnNode("eax");
-
-        instructions.push_back(movInstruction);
-        // instructions.push_back(retInstruction);
-    }
-
-    return instructions;
-}
-
-std::vector<IRFunctionNode*> IRTree::traverseFunction(const std::vector<FunctionNode*> functions) {
-    std::vector<IRFunctionNode*> programFunctions;
-
-    for (FunctionNode* f : functions) {
-        std::string id = f->getIdentifer();
-        std::vector<InstructionNode*> instructs = traverseStatement(f->getStatement());
-        programFunctions.push_back(new IRFunctionNode(id, instructs));
-    }
-
-    return programFunctions;
-}
-
-IRProgramNode* IRTree::traverseProgram(const ProgramNode* program) {
-    return new IRProgramNode(this->traverseFunction(program->getFunction()));
-}
+IRTree::IRTree(){}
 
 
 std::vector<InstructionNode*> IRTree::traverseTackyInstructions(std::vector<TackyInstruction*> instructions){
@@ -384,8 +433,12 @@ std::vector<InstructionNode*> IRTree::traverseTackyInstructions(std::vector<Tack
                 srcOp = new Pseudo{tackyVar->getVariableIdentifier()};
             }
 
-            if(RegisterNode* regNode = dynamic_cast<RegisterNode*>(dst)){
-                dstOp =  new Pseudo{regNode->getRegStr()};
+            if(TackyVariable* tackyVar = dynamic_cast<TackyVariable*>(dst)){
+                dstOp = new Pseudo{tackyVar->getVariableIdentifier()};
+            }else if(TackyConstant* tackyConst = dynamic_cast<TackyConstant*>(dst)){
+                dstOp = new ImmediateNode{tackyConst->getValue()};
+            }else{
+                throw std::runtime_error("TESTING ERROR: dst is neither TackyVariable nor TackyConstant");
             }
 
             MoveInstruction* mov = new MoveInstruction(srcOp, dstOp);
@@ -412,8 +465,15 @@ IRProgramNode* IRTree::traverseTackyProgram( TackyProgram* program){
     return(new IRProgramNode{traverseTackyFunction(program->getFunctions())});
 }
 
+std::vector<IRFunctionNode*> IRProgramNode::getFunctions(){
+    return(this->functions);
+}
+// ======================================================
+//                     IRTree
+// ======================================================
 void IRTree::transform() {
-    this->root = traverseProgram(ast_root.getRoot());
+    // this->root = traverseProgram(ast_root.getRoot());
+
 }
 
 void IRTree::prettyPrint() {
@@ -424,6 +484,134 @@ void IRTree::prettyPrint() {
 void IRTree::filePrint(std::string assemblyFileName) {
     // assemblyFile.open("assemblyFileName + "".s");
     assemblyFile.open("../Assembly.s");
+
     root->filePrint(assemblyFile);
     assemblyFile.close();
 }
+
+
+int& IRTree::getCurrentOffset(){
+    return(this->currentOffset);
+}
+
+std::unordered_map<std::string, int>& IRTree::getPseudoOffsets(){
+    return(this->pseudoOffsets);
+}
+
+void IRTree::replacePseudoOperands(){
+    PseudoReplacer replacer{pseudoOffsets,currentOffset};
+    std::unordered_set<Pseudo*> pseudoNodes;
+    // std::cout<<"THERE are "<<root->getFunctions().size()<<" function(s)\n";
+    int counter = 0;
+    for(IRFunctionNode* f: root->getFunctions()){
+        // std::cout<<f->getIdentifier()<<" has "<<f->getInstructions().size()<<" assembly instructions\n";
+        for(InstructionNode* instr:f->getInstructions()){
+            // std::cout<<"INSTRUCTION: "<<counter<<'\n';
+            // std::cout<<"HERE\n";
+            if(UnaryInstruction* unaryInstr =  dynamic_cast<UnaryInstruction*>(instr)){
+                OperandNode* oldOperand =  unaryInstr->getOperand();
+                // std::cout<<"UNARY"<<'\n';
+                OperandNode* newOperand = replacer.replace(unaryInstr->getOperand(),pseudoNodes);
+                // if(oldOperand == nullptr){
+                //     std::cout<<"NULLPTR\n";
+                // }
+                if(oldOperand != newOperand){
+                    unaryInstr->setOperand(newOperand);
+                    // delete oldOperand;
+                }
+            }else if(MoveInstruction* movInstr =  dynamic_cast<MoveInstruction*>(instr)){
+                // std::cout<<"MOVE"<<'\n';
+                OperandNode* oldSrc =  movInstr->getSrc();
+                OperandNode* oldDst = movInstr->getDst();
+
+                OperandNode* newSrc  =  replacer.replace(movInstr->getSrc(),pseudoNodes);
+                OperandNode* newDst = replacer.replace(movInstr->getDst(),pseudoNodes);
+
+                if(oldSrc != newSrc){
+                    movInstr->setSrc(newSrc);
+                    // delete oldSrc;
+                }
+                if(oldDst != newDst){
+                    movInstr->setDst(newDst);
+                    // delete oldDst;
+                }
+                counter++;
+            }
+        }
+    }
+    for(Pseudo* p: pseudoNodes){
+        delete p;
+    }
+}
+
+IRProgramNode* IRTree::transformFromTacky(TackyProgram* tackyProgram){
+    this->root = traverseTackyProgram(tackyProgram);
+    return(this->root);
+}
+
+PseudoReplacer::PseudoReplacer(std::unordered_map<std::string,int>& offsets, int& currentFreeOffset)
+    : offsets(offsets), currentFreeOffset(currentFreeOffset) {}
+
+OperandNode* PseudoReplacer::replace(OperandNode* op,std::unordered_set<Pseudo*>& pseudoNodes){
+    // std::cout<<"IN REPLACE\n";
+    
+    if(Pseudo* pseudo = dynamic_cast<Pseudo*>(op)){
+        // std::cout<<"IS PSUEDO NODE\n";
+        std::string name = pseudo->getIdentifier();
+        if(offsets.find(name) ==  offsets.end()){
+            offsets[pseudo->getIdentifier()] =  currentFreeOffset;
+            if(currentFreeOffset  < INT_MIN +4){
+                throw std::runtime_error("Cannot decrement offset anymore");
+            }
+            currentFreeOffset-=4;
+        }
+        pseudoNodes.insert(pseudo);
+        Stack* stack =  new Stack{offsets[name]};
+        // std::cout<<"REPLACED PSEUDO NODE WITH STACK ADDRESS\n";
+        return(stack);
+    }
+    // std::cout<<"EXITING REPLACE DID NOT MAKE CHANGE\n";
+    return(op);
+}
+// std::string IRTree::traverseExpression(ExpressionNode* expression) {
+//     if (expression->getType() == ExpressionType::CONSTANT) {
+//         ConstantNode* constNode = dynamic_cast<ConstantNode*>(expression);
+//         return constNode->getValue();
+//     }
+//     return "";
+// }
+
+// std::vector<InstructionNode*> IRTree::traverseStatement(StatementNode* statement) {
+//     std::vector<InstructionNode*> instructions;
+
+//     if (statement->getType() == StatementType::RETURN) {
+//         ReturnNode* returnNode = dynamic_cast<ReturnNode*>(statement);
+//         std::string value = traverseExpression(returnNode->getExpression());
+//         std::cout<<"THE VALUE IS: "<<value<<'\n';
+//         ImmediateNode* immNode = new ImmediateNode(value);
+//         RegisterNode* regNode = new RegisterNode(RegisterName::R10);
+//         MoveInstruction* movInstruction = new MoveInstruction(immNode, regNode);
+//         // IRReturnNode* retInstruction = new IRReturnNode("eax");
+
+//         instructions.push_back(movInstruction);
+//         // instructions.push_back(retInstruction);
+//     }
+
+//     return instructions;
+// }
+
+// std::vector<IRFunctionNode*> IRTree::traverseFunction(const std::vector<FunctionNode*> functions) {
+//     std::vector<IRFunctionNode*> programFunctions;
+
+//     for (FunctionNode* f : functions) {
+//         std::string id = f->getIdentifer();
+//         std::vector<InstructionNode*> instructs = traverseStatement(f->getStatement());
+//         programFunctions.push_back(new IRFunctionNode(id, instructs));
+//     }
+
+//     return programFunctions;
+// }
+
+// IRProgramNode* IRTree::traverseProgram(const ProgramNode* program) {
+//     return new IRProgramNode(this->traverseFunction(program->getFunction()));
+// }

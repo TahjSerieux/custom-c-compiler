@@ -137,7 +137,7 @@ private:
 
 public:
     AST(ProgramNode* root);
-
+    AST();
     const ProgramNode* getRoot() const;
     void PrettyPrint() const;
 };
