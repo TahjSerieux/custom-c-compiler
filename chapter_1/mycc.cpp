@@ -6,7 +6,7 @@
 #include "Lexer.hpp"
 #include "Parser.hpp"
 #include "AST.hpp"
-#include "Assembly2.hpp"
+#include "Assembly.hpp"
 int main(int argc, char* argv[]){
     if(argc<2){
         std::cout<<"Source file was not provided";
