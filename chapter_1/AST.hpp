@@ -35,6 +35,10 @@ class ExpressionNode {
 // ======================================================
 class ConstantNode : public ExpressionNode {
     private:
+        /**
+         * @brief The value of the constant
+         * 
+         */
         std::string value;
 
     public:
