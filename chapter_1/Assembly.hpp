@@ -177,21 +177,24 @@ class UnaryInstruction : public InstructionNode {
         void print() override;
         void filePrint(std::ofstream& assemblyFile) override;
         void prettyPrint(int indent = 0) const override; // <-- NEW
-
-    private:
+        
+        private:
         UnaryOperator unary_operator;
         OperandNode* operand;
-};
-
-// ======================================================
-//                     AllocateStack:InstructionNode
-// ======================================================
-class AllocateStack : public InstructionNode {
-    private:
+    };
+    
+    // ======================================================
+    //                     AllocateStack:InstructionNode
+    // ======================================================
+    class AllocateStack : public InstructionNode {
+        private:
         int amount;
-    public:
+        public:
         AllocateStack(int amount);
-        int getAmount();
+        int getStackDecrementAmount();
+        void setStackDecrementAmount(int amount);
+        void print() override;
+        void filePrint(std::ofstream& assemblyFile) override;
         void prettyPrint(int indent = 0) const override; // <-- NEW
 };
 // ======================================================
@@ -276,6 +279,7 @@ class PseudoReplacer{
     public:
         PseudoReplacer(std::unordered_map<std::string,int>& pseudoOffsets, int& currentOffset);
         OperandNode* replace(OperandNode* op,std::unordered_set<Pseudo*>& pseudoNodes);
+        void resetOffsets();
 
 };
 

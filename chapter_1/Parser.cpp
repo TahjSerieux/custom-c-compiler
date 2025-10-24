@@ -22,10 +22,7 @@ void Parser::expect(TokenType type,std::string value){
         throw std::runtime_error("Reached the final token, no more tokens to parse");
     }
     if(it->getTokenType() != type || it->getValue() != value){
-        throw std::runtime_error(
-        "Expected Terminal '" + value + "' of type: " + token_to_string(type) +
-        " but got: '" + it->getValue() + "' of type: " + token_to_string(it->getTokenType())
-    );
+        throw std::runtime_error("Expected Terminal "+ it->getValue()+ " of type: "+ token_to_string(it->getTokenType())+" but got:  "+ value +" of type: "+ token_to_string(type));
     }
     it++;
 

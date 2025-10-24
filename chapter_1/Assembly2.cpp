@@ -295,7 +295,7 @@ void UnaryInstruction::prettyPrint(int indentLevel) const {
 
 AllocateStack::AllocateStack(int amount):InstructionNode(ALLOCATE), amount(amount){}
 
-int AllocateStack::getAmount(){
+int AllocateStack::getStackDecrementAmount(){
     return(this->amount);
 }
 

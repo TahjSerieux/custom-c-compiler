@@ -16,8 +16,7 @@ OperandNode::~OperandNode() {}
 //                     ImmediateNode::OperandNode
 // ======================================================
 
-ImmediateNode::ImmediateNode(std::string val)
-    : OperandNode(IMM), value(val) {}
+ImmediateNode::ImmediateNode(std::string val) : OperandNode(IMM), value(val) {}
 
 std::string ImmediateNode::getImm(void) {
     return this->value;
@@ -52,8 +51,8 @@ RegisterName RegisterNode::getRegEnum(void) const {
 
 std::string RegisterNode::getRegStr(void) const{
     switch (this->reg){
-        case RegisterName::AX: return "AX";
-        case RegisterName::R10: return "R10";
+        case RegisterName::AX: return "eax";
+        case RegisterName::R10: return "R10d";
         default: return "UNKOWN";
     }
 
@@ -212,8 +211,12 @@ void IRReturnNode::print() {
 }
 
 void IRReturnNode::filePrint(std::ofstream& assemblyFile) {
-    std::cout << "ret\n";
-    assemblyFile << "ret\n";
+    std::cout << "movq %rbp, %rsp\n";
+    std::cout << "\tpopq %rbp\n";
+    std::cout << "\tret\n";
+    assemblyFile << "movq %rbp, %rsp\n";
+    assemblyFile << "\tpopq %rbp\n";
+    assemblyFile << "\tret\n";
 }
 
 
@@ -295,14 +298,27 @@ void UnaryInstruction::prettyPrint(int indentLevel) const {
 
 AllocateStack::AllocateStack(int amount):InstructionNode(ALLOCATE), amount(amount){}
 
-int AllocateStack::getAmount(){
+int AllocateStack::getStackDecrementAmount(){
     return(this->amount);
 }
 
+void AllocateStack::setStackDecrementAmount(int amount){
+    this->amount = amount;
+}
 void AllocateStack::prettyPrint(int indentLevel) const {
     indent(indentLevel);
     std::cout << "AllocateStack(bytes=" << amount << ")\n";
 }
+
+void AllocateStack::print(){
+    std::cout<<"AllocateStack(bytes=" << amount << ")\n";
+}
+
+void AllocateStack::filePrint(std::ofstream& assemblyFile){
+    std::cout<<"subq $"<<this->amount<<", %rsp\n";
+    assemblyFile<<"subq $"<<this->amount<<", %rsp\n";
+}
+
 // ======================================================
 //                     IRFunctionNode
 // ======================================================
@@ -401,6 +417,7 @@ IRTree::IRTree(){}
 
 std::vector<InstructionNode*> IRTree::traverseTackyInstructions(std::vector<TackyInstruction*> instructions){
     std::vector<InstructionNode*>  intermediateInstructions;
+    intermediateInstructions.push_back(new AllocateStack{-1});
     for(TackyInstruction* instr: instructions){
         if(TackyReturn* tackyReturn = dynamic_cast<TackyReturn*>(instr)){
             if(TackyConstant* tackyConstant =  dynamic_cast<TackyConstant*>(tackyReturn->getVar())){
@@ -433,6 +450,8 @@ std::vector<InstructionNode*> IRTree::traverseTackyInstructions(std::vector<Tack
                 srcOp = new Pseudo{tackyVar->getVariableIdentifier()};
             }
 
+
+
             if(TackyVariable* tackyVar = dynamic_cast<TackyVariable*>(dst)){
                 dstOp = new Pseudo{tackyVar->getVariableIdentifier()};
             }else if(TackyConstant* tackyConst = dynamic_cast<TackyConstant*>(dst)){
@@ -441,8 +460,21 @@ std::vector<InstructionNode*> IRTree::traverseTackyInstructions(std::vector<Tack
                 throw std::runtime_error("TESTING ERROR: dst is neither TackyVariable nor TackyConstant");
             }
 
-            MoveInstruction* mov = new MoveInstruction(srcOp, dstOp);
-            intermediateInstructions.push_back(mov);
+            if(Pseudo* s1 = dynamic_cast<Pseudo*>(srcOp) ){
+                if( Pseudo* d = dynamic_cast<Pseudo*>(dstOp)){
+                        RegisterNode* movTmp = new RegisterNode{RegisterName::R10};
+                        intermediateInstructions.push_back(new MoveInstruction(srcOp, movTmp));
+                        intermediateInstructions.push_back(new MoveInstruction(movTmp, dstOp));
+                        // MoveInstruction* mov = new MoveInstruction(srcOp, movTmp);
+
+                }
+
+            }else{
+
+                MoveInstruction* mov = new MoveInstruction(srcOp, dstOp);
+                intermediateInstructions.push_back(mov);
+            }
+
 
             UnaryInstruction* unaryInstr = new UnaryInstruction{unaryOperator,dstOp};
             intermediateInstructions.push_back(unaryInstr);
@@ -538,6 +570,11 @@ void IRTree::replacePseudoOperands(){
                 counter++;
             }
         }
+        if(AllocateStack* allocate =  dynamic_cast<AllocateStack*>(f->getInstructions()[0])){
+            allocate->setStackDecrementAmount(currentOffset+4);
+        }
+
+        replacer.resetOffsets();
     }
     for(Pseudo* p: pseudoNodes){
         delete p;
@@ -573,45 +610,8 @@ OperandNode* PseudoReplacer::replace(OperandNode* op,std::unordered_set<Pseudo*>
     // std::cout<<"EXITING REPLACE DID NOT MAKE CHANGE\n";
     return(op);
 }
-// std::string IRTree::traverseExpression(ExpressionNode* expression) {
-//     if (expression->getType() == ExpressionType::CONSTANT) {
-//         ConstantNode* constNode = dynamic_cast<ConstantNode*>(expression);
-//         return constNode->getValue();
-//     }
-//     return "";
-// }
 
-// std::vector<InstructionNode*> IRTree::traverseStatement(StatementNode* statement) {
-//     std::vector<InstructionNode*> instructions;
-
-//     if (statement->getType() == StatementType::RETURN) {
-//         ReturnNode* returnNode = dynamic_cast<ReturnNode*>(statement);
-//         std::string value = traverseExpression(returnNode->getExpression());
-//         std::cout<<"THE VALUE IS: "<<value<<'\n';
-//         ImmediateNode* immNode = new ImmediateNode(value);
-//         RegisterNode* regNode = new RegisterNode(RegisterName::R10);
-//         MoveInstruction* movInstruction = new MoveInstruction(immNode, regNode);
-//         // IRReturnNode* retInstruction = new IRReturnNode("eax");
-
-//         instructions.push_back(movInstruction);
-//         // instructions.push_back(retInstruction);
-//     }
-
-//     return instructions;
-// }
-
-// std::vector<IRFunctionNode*> IRTree::traverseFunction(const std::vector<FunctionNode*> functions) {
-//     std::vector<IRFunctionNode*> programFunctions;
-
-//     for (FunctionNode* f : functions) {
-//         std::string id = f->getIdentifer();
-//         std::vector<InstructionNode*> instructs = traverseStatement(f->getStatement());
-//         programFunctions.push_back(new IRFunctionNode(id, instructs));
-//     }
-
-//     return programFunctions;
-// }
-
-// IRProgramNode* IRTree::traverseProgram(const ProgramNode* program) {
-//     return new IRProgramNode(this->traverseFunction(program->getFunction()));
-// }
+void PseudoReplacer::resetOffsets(){
+    this->offsets.clear();
+    this->currentFreeOffset = -4;
+}
