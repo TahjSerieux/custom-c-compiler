@@ -24,7 +24,7 @@ bool Lexer::isLetter(char& c){
 bool Lexer::isDigit(char& c){
     return(c >= '0'&&  c <='9');
 }   
-std::string Lexer::getSymbol(std::string::iterator& it, std::string::iterator end,TokenType type){
+std::string Lexer::createSymbol(std::string::iterator& it, std::string::iterator end,TokenType type){
     std::string symbol;
     if(type == CONSTANTS){
         while(it != end &&isDigit(*it)){
@@ -95,12 +95,12 @@ void Lexer::tokenize(std::string str){
             it++;
         }else if(isDigit(*it)){
             //Expecting an valid number followed by a whitespace. (123L* is not valid L=[A-Z+a-z+_])
-            Token t(getSymbol(it, str.end(),CONSTANTS),CONSTANTS);
+            Token t(createSymbol(it, str.end(),CONSTANTS),CONSTANTS);
             tokens.push_back(t);
         }else if(isLetter(*it) || *it =='_'){
             // std::cout<<"Symbol: "<<*it<<'\n';
             //Expecting a Valid Identifier(words consisting of [A-Za-z]w*,w=[A-Z+a-z+0-9+_])
-            std::string symbol = getSymbol(it,str.end(),IDENTIFIER);
+            std::string symbol = createSymbol(it,str.end(),IDENTIFIER);
             if(isKeyword(symbol)){
                 Token t(symbol,KEYWORD);
                 tokens.push_back(t);

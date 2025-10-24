@@ -113,6 +113,7 @@ StatementNode* FunctionNode::getStatement(){
 ProgramNode::ProgramNode(std::vector<FunctionNode*> funcs){
     this->functions =  funcs;
 }
+
 void ProgramNode::print() const{
     std::cout<<"Program(\n";
         for(FunctionNode* f: functions){
@@ -120,7 +121,7 @@ void ProgramNode::print() const{
         }
     std::cout<<"\n)\n";
 }
-std::vector<FunctionNode*> ProgramNode::getFunction() const{
+std::vector<FunctionNode*> ProgramNode::getFunctions() const{
     return(this->functions);
 }
 

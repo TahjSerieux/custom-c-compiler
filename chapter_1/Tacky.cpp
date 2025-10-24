@@ -220,7 +220,7 @@ TackyFunction* TackyGenerator::convertFunction(FunctionNode* function){
 
 TackyProgram* TackyGenerator::convertProgram(AST* ast){
     std::vector<TackyFunction*> tackyFunctions;
-    for(FunctionNode* f: ast->getRoot()->getFunction()){
+    for(FunctionNode* f: ast->getRoot()->getFunctions()){
         tackyFunctions.push_back(convertFunction(f));
     }
     return(new TackyProgram{tackyFunctions});
