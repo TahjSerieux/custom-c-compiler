@@ -52,7 +52,7 @@ RegisterName RegisterNode::getRegEnum(void) const {
 std::string RegisterNode::getRegStr(void) const{
     switch (this->reg){
         case RegisterName::AX: return "eax";
-        case RegisterName::R10: return "R10d";
+        case RegisterName::R10: return "r10d";
         default: return "UNKOWN";
     }
 
