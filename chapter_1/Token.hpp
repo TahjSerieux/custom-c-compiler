@@ -2,6 +2,7 @@
 #define TOKEN_HPP
 
 #include <string>
+#include <unordered_set>
 enum TokenType{
     KEYWORD,
     OPEN_PARENTHESIS,
@@ -10,17 +11,19 @@ enum TokenType{
     CLOSED_BRACKETS,
     CONSTANTS,
     SEMICOLON,
-    IDENTIFIER
+    IDENTIFIER,
+    DECREMENT,
+    TILDE,
+    HYPHEN
 };
-
 class Token{
     public:
-        Token(){
+    Token(){
 
         }
         Token(std::string value, TokenType type);
         std::string getValue();
-        TokenType getTokenType();
+        enum TokenType getTokenType();
 
     private:
         std::string value;
@@ -30,5 +33,6 @@ class Token{
 };
 
 std::string token_to_string(TokenType type);
+bool isUnaryOperator(Token t);
 
 #endif // TOKEN_HPP

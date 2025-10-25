@@ -70,18 +70,21 @@ int main(int argc, char* argv[]){
         {
             AST ast{parser.parseProgram()};
             std::cout<<"----------------\nPARSE SUCCESSFUL\n----------------\n";
-            // program->print();
-            // std::cout<<"Progam(\n";
-            // for(ProgramNode* f: functions){
-            //     f->print();
-            // }
+            
             ast.PrettyPrint();
-            // std::cout<<")\n";
-            IRTree intermidate{ast};
-            intermidate.transform();
-            // intermidate.prettyPrint();
-            intermidate.filePrint();
+            TackyGenerator tackyGenerator{};
+            TackyProgram* tackyProgram = tackyGenerator.convertProgram(&ast);
+            tackyProgram->prettyPrint();
+            std::cout<<"-------------------------------------------------------------------------------\n";
+            IRTree intermidate{};
+            intermidate.transformFromTacky(tackyProgram);
+            intermidate.replacePseudoOperands();
+            intermidate.filePrint(fileName);
         }
+        // IRTree intermidate{ast};
+        // intermidate.transform();
+        // // TackyProgram* tackyProgram =  intermidate.
+        // // intermidate.prettyPrint();
         catch(const std::exception& e)
         {
             std::cerr << e.what() << '\n';
@@ -95,19 +98,15 @@ int main(int argc, char* argv[]){
             std::cout<<"Exiting as a failure\n";
             return(-1);
         }
-        
-        
-        
 
+        // // ------------------------------------------------------------------------------------------------------------------------------------------
+        // if(remove(preprocessFileName.c_str()) == 0){
 
-        // ------------------------------------------------------------------------------------------------------------------------------------------
-        if(remove(preprocessFileName.c_str()) == 0){
-
-            std::cout<<"Deleted: "<<preprocessFileName<<'\n';
-        }else{
-            std::perror("Error deleting file");
-                std::cout << "Could not delete: " << preprocessFileName << '\n';
-        }
+        //     std::cout<<"Deleted: "<<preprocessFileName<<'\n';
+        // }else{
+        //     std::perror("Error deleting file");
+        //         std::cout << "Could not delete: " << preprocessFileName << '\n';
+        // }
 
         
         
