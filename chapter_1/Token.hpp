@@ -3,7 +3,7 @@
 
 #include <string>
 #include <unordered_set>
-enum TokenType{
+enum class TokenType{
     KEYWORD,
     OPEN_PARENTHESIS,
     CLOSED_PARENTHESIS,
@@ -14,8 +14,16 @@ enum TokenType{
     IDENTIFIER,
     DECREMENT,
     TILDE,
-    HYPHEN
+    HYPHEN,
+    ADD,
+    MUL,
+    DIV,
+    MOD
+
 };
+std::unordered_set<TokenType> firstPrecedence={TokenType::ADD};
+std::unordered_set<TokenType> secondPrecedence={TokenType::MUL,TokenType::DIV, TokenType::MOD};
+std::unordered_set<TokenType> thirdPrecedence = {};
 class Token{
     public:
     Token(){

@@ -58,8 +58,32 @@ UnaryNode::~UnaryNode(){}
 //     std::cout<<unary_operator_to_string(this->unary_operator);
 //     this->exp->print();
 // }
+// ======================================================
+//                     BinaryNode:ExpressionNode
+// ======================================================
+BinaryNode::BinaryNode(BinaryOperator binary_operator,ExpressionNode* firstExpression,ExpressionNode* secondExpression):ExpressionNode{ExpressionType::BINARY},
+binary_operator(binary_operator),firstExpression(firstExpression),secondExpression(secondExpression){}
 
+BinaryNode::~BinaryNode()
+{
+}
 
+ExpressionNode* BinaryNode::getFirstExpression(){
+    return(this->firstExpression);
+}
+ExpressionNode* BinaryNode::getSecondExpression(){
+    return(this->secondExpression);
+}
+BinaryOperator BinaryNode::getBinaryOperator(){
+    return(this->binary_operator);
+}
+void BinaryNode::print(){
+    std::cout<<"BINARY NODE";
+}
+
+const std::string BinaryNode::getValue(){
+    return("");
+}
 // ======================================================
 //                     StatementNode
 // ======================================================

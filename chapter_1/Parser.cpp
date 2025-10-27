@@ -29,7 +29,7 @@ void Parser::expect(TokenType type,std::string value){
 }
 
 std::string Parser::parseIdentifier(){
-    if(it==tokens.end() || it->getTokenType() != IDENTIFIER){
+    if(it==tokens.end() || it->getTokenType() != TokenType::IDENTIFIER){
         throw std::runtime_error("Expected token of type IDENTIFIER");
     }
     std::string str = it->getValue();
@@ -39,9 +39,9 @@ std::string Parser::parseIdentifier(){
 UnaryNode* Parser::parseUnaryExpression(){
     TokenType type = this->it->getTokenType();
     UnaryOperator unary;
-    if(type  == HYPHEN){
+    if(type  == TokenType::HYPHEN){
         unary = UnaryOperator::Negation;
-    }else if(type == TILDE){
+    }else if(type == TokenType::TILDE){
         unary = UnaryOperator::Complement;
     }else{
         unary = UnaryOperator::Error;
@@ -54,7 +54,7 @@ std::string Parser::parseInt(){
     if(it == this->tokens.end()){
         throw std::runtime_error("Error processing tokens: Unexepectedly reach end of tokens");
     }
-    if(it!= this->tokens.end() && it->getTokenType() == CONSTANTS ){
+    if(it!= this->tokens.end() && it->getTokenType() == TokenType::CONSTANTS ){
         std::string value =it->getValue();
         it++;
         return(value);
@@ -64,17 +64,17 @@ std::string Parser::parseInt(){
 }
 ExpressionNode* Parser::parseExpression(){
     //If the current expression is a constant integer value i.e (54)
-    if(parserPeek(0)->getTokenType() == CONSTANTS ){
+    if(parserPeek(0)->getTokenType() == TokenType::CONSTANTS ){
         std::string constant = parseInt();
         return (new ConstantNode{constant});
     }else if(isUnaryOperator(*parserPeek(0))){
         UnaryNode* node =  parseUnaryExpression();
         // node->print();std::cout<<'\n';
         return(node);
-    }else if(parserPeek(0)->getTokenType() == OPEN_PARENTHESIS){
-        expect(OPEN_PARENTHESIS,"("); 
+    }else if(parserPeek(0)->getTokenType() == TokenType::OPEN_PARENTHESIS){
+        expect(TokenType::OPEN_PARENTHESIS,"("); 
         ExpressionNode* node = parseExpression();
-        expect(CLOSED_PARENTHESIS,")"); 
+        expect(TokenType::CLOSED_PARENTHESIS,")"); 
         return(node);
     }else{
         throw std::runtime_error("Malformed Expression");\
@@ -83,23 +83,23 @@ ExpressionNode* Parser::parseExpression(){
     // return (new ConstantNode{"constant"});
 }
 StatementNode* Parser::parseStatement(){
-    expect(KEYWORD,"return");
+    expect(TokenType::KEYWORD,"return");
     
     ExpressionNode* exp =  parseExpression();
-    expect(SEMICOLON,";");
+    expect(TokenType::SEMICOLON,";");
     // StatementNode* node = new StatementNode{exp};
     return(new ReturnNode{exp});
 }
 FunctionNode* Parser::parseFunction(){
-    expect(KEYWORD,"int");
+    expect(TokenType::KEYWORD,"int");
     std::string name = parseIdentifier();
-    expect(OPEN_PARENTHESIS,"(");
-    expect(KEYWORD,"void");
-    expect(CLOSED_PARENTHESIS,")");
-    expect(OPEN_BRACKETS,"{");
+    expect(TokenType::OPEN_PARENTHESIS,"(");
+    expect(TokenType::KEYWORD,"void");
+    expect(TokenType::CLOSED_PARENTHESIS,")");
+    expect(TokenType::OPEN_BRACKETS,"{");
     StatementNode* function_body =  parseStatement();
 
-    expect(CLOSED_BRACKETS,"}");
+    expect(TokenType::CLOSED_BRACKETS,"}");
     return(new FunctionNode{name,function_body});
 }
 
@@ -109,4 +109,18 @@ std::vector<Token>::iterator Parser::parserPeek(int pos) {
     if (it2 >= tokens.end())
         throw std::runtime_error("Attempted to peek past end of tokens");
     return it2;
+}
+
+
+int Parser::precedneceChecker(Token t){
+    TokenType type = t.getTokenType();
+    if(firstPrecedence.find(type)!= firstPrecedence.end()){
+        return(1);
+    }else if(secondPrecedence.find(type) != secondPrecedence.end() ){
+        return(2);
+    }else if(thirdPrecedence.find(type) != thirdPrecedence.end()){
+        return(3);
+    }else{
+        throw std::runtime_error("UNDEFINED PRECEDENCE");
+    }
 }

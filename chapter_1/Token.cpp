@@ -2,37 +2,37 @@
 std::string token_to_string(TokenType type){
     switch (type)
     {
-        case 0:
+        case TokenType::KEYWORD:
             return("KEYWORD");
             break;
-        case 1:
+        case TokenType::OPEN_PARENTHESIS:
             return("OPEN_PARENTHESIS");
             break;
-        case 2:
+        case TokenType::CLOSED_PARENTHESIS:
             return("CLOSED_PARENTHESIS");
             break;
-        case 3:
+        case TokenType::OPEN_BRACKETS:
             return("OPEN_BRACKETS");
             break;
-        case 4:
+        case TokenType::CLOSED_BRACKETS:
             return("CLOSED_BRACKETS");
             break;
-        case 5:
+        case TokenType::CONSTANTS:
             return("CONSTANTS");
             break;
-        case 6:
+        case TokenType::SEMICOLON:
             return("SEMICOLON");
             break;
-        case 7:
+        case TokenType::IDENTIFIER:
             return("IDENTIFIER");
             break;
-        case 8:
+        case TokenType::DECREMENT:
             return("DECREMENT");
             break;
-        case 9:
+        case TokenType::TILDE:
             return("TILDE");
             break;
-        case 10:
+        case TokenType::HYPHEN:
             return("HYPHEN");
             break;
         default:
@@ -50,7 +50,7 @@ enum TokenType Token::getTokenType(){
     return(this->type);
 }
 
-std::unordered_set<TokenType> unaryOperators = {HYPHEN,TILDE};
+std::unordered_set<TokenType> unaryOperators = {TokenType::HYPHEN,TokenType::TILDE};
 bool isUnaryOperator(Token t){
     if(unaryOperators.find(t.getTokenType()) == unaryOperators.end()){
         return(false);

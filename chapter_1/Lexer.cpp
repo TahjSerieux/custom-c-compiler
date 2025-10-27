@@ -26,7 +26,7 @@ bool Lexer::isDigit(char& c){
 }   
 std::string Lexer::createSymbol(std::string::iterator& it, std::string::iterator end,TokenType type){
     std::string symbol;
-    if(type == CONSTANTS){
+    if(type == TokenType::CONSTANTS){
         while(it != end &&isDigit(*it)){
             symbol +=  *it;
             it++;
@@ -37,7 +37,7 @@ std::string Lexer::createSymbol(std::string::iterator& it, std::string::iterator
                 throw std::runtime_error("Invalid Symbol Detected: " + symbol +*it);
             }
         }
-    }else if(it != end &&type == IDENTIFIER){
+    }else if(it != end &&type == TokenType::IDENTIFIER){
         while( it != end && (isLetter(*it) ||isDigit(*it))){
             symbol += *it;
             it++;
@@ -62,50 +62,67 @@ void Lexer::tokenize(std::string str){
         if(isWhiteSpace(*it)){
             it++;
         }else if(*it == '('){
-            Token t("(",OPEN_PARENTHESIS);
+            Token t("(",TokenType::OPEN_PARENTHESIS);
             tokens.push_back(t);
             it++;
         }else if(*it == ')'){
-            Token t(")",CLOSED_PARENTHESIS);
+            Token t(")",TokenType::CLOSED_PARENTHESIS);
             tokens.push_back(t);
             it++;
         }else if(*it == '{'){
-            Token t("{", OPEN_BRACKETS);
+            Token t("{", TokenType::OPEN_BRACKETS);
             tokens.push_back(t);
             it++;
         }else if(*it == '}'){
-            Token t("}", CLOSED_BRACKETS);
+            Token t("}", TokenType::CLOSED_BRACKETS);
             tokens.push_back(t);
             it++;
         }else if(*it == ';'){
-            Token t(";",SEMICOLON);
+            Token t(";",TokenType::SEMICOLON);
             tokens.push_back(t);
             it++;
         }else if(*it == '-' && *lexerPeek(it,1)!='-'){
-            Token t("-",HYPHEN);
+            Token t("-",TokenType::HYPHEN);
             tokens.push_back(t);
             it++;
         }else if(*it == '-' && *lexerPeek(it,1)=='-'){
-            Token t("--",DECREMENT);
+            Token t("--",TokenType::DECREMENT);
             tokens.push_back(t);
             it+=2;
         }else if(*it == '~'){
-            Token t("~",TILDE);
+            Token t("~",TokenType::TILDE);
             tokens.push_back(t);
             it++;
-        }else if(isDigit(*it)){
+        }else if(*it == '+'){
+            Token t("+",TokenType::ADD);
+            tokens.push_back(t);
+            it++;
+        }else if(*it == '*'){
+            Token t("*",TokenType::MUL);
+            tokens.push_back(t);
+            it++;
+        }else if(*it == '/'){
+            Token t("/",TokenType::DIV);
+            tokens.push_back(t);
+            it++;
+        }else if(*it == '%'){
+            Token t("%",TokenType::MOD);
+            tokens.push_back(t);
+            it++;
+        }
+        else if(isDigit(*it)){
             //Expecting an valid number followed by a whitespace. (123L* is not valid L=[A-Z+a-z+_])
-            Token t(createSymbol(it, str.end(),CONSTANTS),CONSTANTS);
+            Token t(createSymbol(it, str.end(),TokenType::CONSTANTS),TokenType::CONSTANTS);
             tokens.push_back(t);
         }else if(isLetter(*it) || *it =='_'){
             // std::cout<<"Symbol: "<<*it<<'\n';
             //Expecting a Valid Identifier(words consisting of [A-Za-z]w*,w=[A-Z+a-z+0-9+_])
-            std::string symbol = createSymbol(it,str.end(),IDENTIFIER);
+            std::string symbol = createSymbol(it,str.end(),TokenType::IDENTIFIER);
             if(isKeyword(symbol)){
-                Token t(symbol,KEYWORD);
+                Token t(symbol,TokenType::KEYWORD);
                 tokens.push_back(t);
             }else{
-                Token t(symbol,IDENTIFIER);
+                Token t(symbol,TokenType::IDENTIFIER);
                 tokens.push_back(t);
             }
         }else{

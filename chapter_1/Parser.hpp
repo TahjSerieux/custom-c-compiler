@@ -28,5 +28,6 @@ class Parser{
         std::string parseIdentifier();
         FunctionNode* parseFunction();
         std::vector<Token>::iterator parserPeek(int pos);
+        int precedneceChecker(Token t);
 };
 #endif

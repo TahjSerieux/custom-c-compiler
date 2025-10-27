@@ -10,9 +10,10 @@
 //                     Enums
 // ======================================================
 
-enum class ExpressionType { CONSTANT,UNARY };
+enum class ExpressionType { CONSTANT,UNARY,BINARY };
 enum class StatementType  { RETURN };
 enum class UnaryOperator{Complement, Negation,Error};
+enum class BinaryOperator{Add,Subtract,Multiply,Divide,Remainder,Error};
 std::string unary_operator_to_string(UnaryOperator op);
 // ======================================================
 //                     ExpressionNode
@@ -117,30 +118,66 @@ class UnaryNode: public ExpressionNode{
         const std::string getValue() override;
 };
 // ======================================================
+//                     BinaryNode:ExpressionNode
+// ======================================================
+class BinaryNode: public ExpressionNode
+{
+    private:
+        /**
+         * @brief An enum representing the type of binary operator
+         * 
+         */
+        BinaryOperator binary_operator;
+        /**
+         * @brief The
+         *  expression the unary operator will be applied to.
+         * 
+         */
+        ExpressionNode* firstExpression;
+        ExpressionNode* secondExpression;
+
+    public:
+        BinaryNode(BinaryOperator binary_operator,ExpressionNode* firstExpression,ExpressionNode* secondExpression);
+        ~BinaryNode();
+        ExpressionNode* getFirstExpression();
+        ExpressionNode* getSecondExpression();
+        BinaryOperator getBinaryOperator();
+         void print() override;
+        /**
+         * @brief Get the Value object
+         * 
+         * @return const std::string 
+         */
+        const std::string getValue() override;
+};
+
+
+
+// ======================================================
 //                     StatementNode
 // ======================================================
 // Abstract Base class for all statements
 // (self-contained units of execution, i.e., valid lines of code)
 class StatementNode {
-public:
-    virtual ~StatementNode() = 0;
-    virtual void print() = 0;
+    public:
+        virtual ~StatementNode() = 0;
+        virtual void print() = 0;
 
-    /**
-     * @brief Get the Type object. All derived classes inherits this function.
-     * 
-     * @return StatementType 
-     */
-    StatementType getType();
-    virtual const ExpressionNode* getExpression() const = 0;
+        /**
+         * @brief Get the Type object. All derived classes inherits this function.
+         * 
+         * @return StatementType 
+         */
+        StatementType getType();
+        virtual const ExpressionNode* getExpression() const = 0;
 
-protected:
-    StatementNode(StatementType t);
-    /**
-     * @brief An enum that represents the type of Statement the StatementNode is.
-     * 
-     */
-    const StatementType type;
+    protected:
+        StatementNode(StatementType t);
+        /**
+         * @brief An enum that represents the type of Statement the StatementNode is.
+         * 
+         */
+        const StatementType type;
 };
 
 
