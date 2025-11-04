@@ -1,4 +1,10 @@
 #include "Token.hpp"
+
+// Define the precedence sets
+std::unordered_set<TokenType> firstPrecedence = {TokenType::ADD, TokenType::HYPHEN};
+std::unordered_set<TokenType> secondPrecedence = {TokenType::MUL, TokenType::DIV, TokenType::MOD};
+std::unordered_set<TokenType> thirdPrecedence = {};
+
 std::string token_to_string(TokenType type){
     switch (type)
     {
@@ -50,10 +56,10 @@ enum TokenType Token::getTokenType(){
     return(this->type);
 }
 
-std::unordered_set<TokenType> unaryOperators = {TokenType::HYPHEN,TokenType::TILDE};
-bool isUnaryOperator(Token t){
-    if(unaryOperators.find(t.getTokenType()) == unaryOperators.end()){
-        return(false);
-    }
-    return(true);
-}
+// std::unordered_set<TokenType> unaryOperators = {TokenType::HYPHEN,TokenType::TILDE};
+// bool isUnaryOperator(Token t){
+//     if(unaryOperators.find(t.getTokenType()) == unaryOperators.end()){
+//         return(false);
+//     }
+//     return(true);
+// }

@@ -21,9 +21,9 @@ enum class TokenType{
     MOD
 
 };
-std::unordered_set<TokenType> firstPrecedence={TokenType::ADD};
-std::unordered_set<TokenType> secondPrecedence={TokenType::MUL,TokenType::DIV, TokenType::MOD};
-std::unordered_set<TokenType> thirdPrecedence = {};
+extern std::unordered_set<TokenType> firstPrecedence;
+extern std::unordered_set<TokenType> secondPrecedence;
+extern std::unordered_set<TokenType> thirdPrecedence;
 class Token{
     public:
     Token(){
@@ -41,6 +41,6 @@ class Token{
 };
 
 std::string token_to_string(TokenType type);
-bool isUnaryOperator(Token t);
+// bool isUnaryOperator(Token t);
 
 #endif // TOKEN_HPP

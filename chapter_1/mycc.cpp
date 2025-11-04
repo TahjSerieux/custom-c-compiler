@@ -74,12 +74,13 @@ int main(int argc, char* argv[]){
             ast.PrettyPrint();
             TackyGenerator tackyGenerator{};
             TackyProgram* tackyProgram = tackyGenerator.convertProgram(&ast);
+            std::cout<<'\n';
             tackyProgram->prettyPrint();
-            std::cout<<"-------------------------------------------------------------------------------\n";
-            IRTree intermidate{};
-            intermidate.transformFromTacky(tackyProgram);
-            intermidate.replacePseudoOperands();
-            intermidate.filePrint(fileName);
+            // std::cout<<"-------------------------------------------------------------------------------\n";
+            // IRTree intermidate{};
+            // intermidate.transformFromTacky(tackyProgram);
+            // intermidate.replacePseudoOperands();
+            // intermidate.filePrint(fileName);
         }
         // IRTree intermidate{ast};
         // intermidate.transform();

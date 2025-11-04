@@ -115,6 +115,45 @@ void TackyUnary::prettyPrint(int indent) const {
     std::cout << "Src -> ";
     if (this->src) this->src->prettyPrint(0); else std::cout << "None\n";
 }
+// ======================================================
+//                     TackyUnary : TackyInstruction
+// ======================================================
+TackyBinary::TackyBinary(BinaryOperator binary_operator,TackyVal* val1,TackyVal* val2,TackyVal* dst):binary_operator(binary_operator),val1(val1),val2(val2),dst(dst){}
+TackyBinary::~TackyBinary(){}
+
+BinaryOperator TackyBinary::getBinaryOperator(){
+    return(this->binary_operator);
+}
+
+TackyVal* TackyBinary::getVal1(){
+    return(this->val1);
+}
+
+TackyVal* TackyBinary::getVal2(){
+    return(this->val2);
+}
+
+TackyVal* TackyBinary::getDst(){
+    return(this->dst);
+}
+
+void TackyBinary::print() const{
+    std::cout<<"BINARY OPERATOR\n";
+}
+void TackyBinary::prettyPrint(int indent) const{
+    printIndent(indent);
+    std::cout<<"BINARY("<<binary_operator_to_string(this->binary_operator)<<"):\n";
+    printIndent(indent+1);
+    std::cout<< "Val1->";
+    if(this->val1) this->val1->prettyPrint(0);else  std::cout<<"NONE\n";
+    printIndent(indent+1);
+    std::cout<< "Val2->";
+    if(this->val2) this->val2->prettyPrint(0);else  std::cout<<"NONE\n";
+    printIndent(indent+1);
+    std::cout<< "Dst->";
+    if(this->dst) this->dst->prettyPrint(0);else  std::cout<<"NONE\n";
+    // std::cout<<"BINARY OPERATOR\n";
+}
 
 // ======================================================
 //                     TackyFunction
@@ -130,13 +169,6 @@ std::vector<TackyInstruction*> TackyFunction::getBody(){
     return(this->body);
 }
 
-// void TackyFunction::print() const {
-//     std::cout << "function " << identifier << "():\n";
-//     for (auto* instr : body) {
-//         instr->print();
-//     }
-//     std::cout << "\n";
-// }
 
 void TackyFunction::print() const {
     std::cout << "function " << identifier << "():\n";
@@ -196,7 +228,18 @@ TackyVal*  TackyGenerator::convertExpression(ExpressionNode* expression,std::vec
         instructions.push_back(inst);
         return dst;
         
+    }else if(type == ExpressionType::BINARY){
+        BinaryNode* binaryNode = dynamic_cast<BinaryNode*>(expression);
+        BinaryOperator binaryOperator = binaryNode->getBinaryOperator();
+        TackyVal* val1 = convertExpression(binaryNode->getFirstExpression(), instructions);
+        TackyVal* val2 = convertExpression(binaryNode->getSecondExpression(), instructions);
+        std::string dstName = make_temporary();
+        TackyVariable* dst =  new TackyVariable{dstName};
+        TackyBinary* inst = new TackyBinary{binaryOperator,val1,val2,dst};
+        instructions.push_back(inst);
+        return(dst);
     }
+
     return(nullptr);
 }
 

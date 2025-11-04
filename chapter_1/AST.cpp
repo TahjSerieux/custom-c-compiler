@@ -2,13 +2,33 @@
 #include <vector>
 #include <iostream>
 #include "AST.hpp"
+// Helper function to handle indentation easily
+static void printIndent(int indent) {
+    for (int i = 0; i < indent; ++i) std::cout << "    "; // 4 spaces per indent
+}
 std::string unary_operator_to_string(UnaryOperator op){
     switch(op) {
         case UnaryOperator::Negation: return "-";
         case UnaryOperator::Complement: return "~";
         case UnaryOperator::Error: return "Error";
+        case UnaryOperator::Unkown: return "Unkown";
     }
-    return ""; // optional default, to silence compiler warnings
+    throw std::runtime_error("std::string unary_operator_to_string(UnaryOperator op): No matching operator");
+    // return ""; // optional default, to silence compiler warnings
+}
+
+std::string binary_operator_to_string(BinaryOperator op){
+    switch (op)
+    {
+        case BinaryOperator::Add: return "+";
+        case BinaryOperator::Subtract: return "-";
+        case BinaryOperator::Multiply: return "*";
+        case BinaryOperator::Divide: return "/";
+        case BinaryOperator::Remainder: return "%";
+    }
+    // return("No Matching Operator")
+    throw std::runtime_error("std::string binary_Operator_to_string(BinaryOperator op): No matching operator");
+    
 }
 // ======================================================
 //                     ExpressionNode
@@ -30,6 +50,10 @@ void ConstantNode::print(){
 }
 const std::string ConstantNode::getValue(){
     return(this->value);
+}
+void ConstantNode::print(int indent) {
+    printIndent(indent);
+    std::cout << "Constant(\"" << value << "\")";
 }
 // ======================================================
 //                     UnaryNode::ExperssionNode
@@ -58,10 +82,25 @@ UnaryNode::~UnaryNode(){}
 //     std::cout<<unary_operator_to_string(this->unary_operator);
 //     this->exp->print();
 // }
+
+void UnaryNode::print(int indent) {
+    printIndent(indent);
+    std::cout << "UnaryNode(\n";
+    printIndent(indent + 1);
+    std::cout << "op=\"" << unary_operator_to_string(unary_operator) << "\",\n";
+    printIndent(indent + 1);
+    std::cout << "expr=\n";
+    exp->print(indent + 2);
+    std::cout << "\n";
+    printIndent(indent);
+    std::cout << ")";
+}
+
+
 // ======================================================
 //                     BinaryNode:ExpressionNode
 // ======================================================
-BinaryNode::BinaryNode(BinaryOperator binary_operator,ExpressionNode* firstExpression,ExpressionNode* secondExpression):ExpressionNode{ExpressionType::BINARY},
+BinaryNode::BinaryNode(ExpressionNode* firstExpression,BinaryOperator binary_operator,ExpressionNode* secondExpression):ExpressionNode{ExpressionType::BINARY},
 binary_operator(binary_operator),firstExpression(firstExpression),secondExpression(secondExpression){}
 
 BinaryNode::~BinaryNode()
@@ -78,12 +117,42 @@ BinaryOperator BinaryNode::getBinaryOperator(){
     return(this->binary_operator);
 }
 void BinaryNode::print(){
-    std::cout<<"BINARY NODE";
+    // std::cout<<"BINARY NODE";
+    std::cout<<"\t\t\t(\n";
+    firstExpression->print();
+    std::cout<<"\n\t\t\t"<<binary_operator_to_string(this->binary_operator)<<'\n';
+    secondExpression->print();
+    std::cout<<"\n\t\t\t)\n";
+
 }
 
 const std::string BinaryNode::getValue(){
     return("");
 }
+
+void BinaryNode::print(int indent) {
+    printIndent(indent);
+    std::cout << "BinaryNode(\n";
+    printIndent(indent + 1);
+    std::cout << "op=\"" << binary_operator_to_string(binary_operator)
+              << "\", precedence=" << static_cast<int>(binary_operator)
+              << ",\n";
+
+    printIndent(indent + 1);
+    std::cout << "lhs=\n";
+    firstExpression->print(indent + 2);
+    std::cout << ",\n";
+
+    printIndent(indent + 1);
+    std::cout << "rhs=\n";
+    secondExpression->print(indent + 2);
+    std::cout << "\n";
+
+    printIndent(indent);
+    std::cout << ")";
+}
+
+
 // ======================================================
 //                     StatementNode
 // ======================================================
@@ -108,6 +177,14 @@ void ReturnNode::print(){
 ExpressionNode* ReturnNode::getExpression(void)const{
     return(this->exp);
 }
+void ReturnNode::print(int indent) {
+    printIndent(indent);
+    std::cout << "Return(\n";
+    exp->print(indent + 1);
+    std::cout << "\n";
+    printIndent(indent);
+    std::cout << ")";
+}
 
 // ======================================================
 //                     FunctionNode
@@ -131,6 +208,20 @@ StatementNode* FunctionNode::getStatement(){
     return(this->statement);
 }
 
+
+void FunctionNode::print(int indent) {
+    printIndent(indent);
+    std::cout << "Function(\n";
+    printIndent(indent + 1);
+    std::cout << "name=\"" << identifier << "\",\n";
+    printIndent(indent + 1);
+    std::cout << "body=\n";
+    statement->print(indent + 2);
+    std::cout << "\n";
+    printIndent(indent);
+    std::cout << ")";
+}
+
 // ======================================================
 //                     ProgramNode
 // ======================================================
@@ -150,6 +241,16 @@ std::vector<FunctionNode*> ProgramNode::getFunctions() const{
 }
 
        
+void ProgramNode::print(int indent) const {
+    printIndent(indent);
+    std::cout << "Program(\n";
+    for (auto* f : functions) {
+        f->print(indent + 1);
+        std::cout << "\n";
+    }
+    printIndent(indent);
+    std::cout << ")";
+}
 
 // ======================================================
 //                     AST
@@ -157,7 +258,11 @@ std::vector<FunctionNode*> ProgramNode::getFunctions() const{
 AST::AST(ProgramNode* root):root(root){}
 AST::AST():root(nullptr){}
 void AST::PrettyPrint() const{
-    root->print();
+    if(root){
+        root->print(0);
+    }else{
+        std::cout<<"<empty AST>\n";
+    }
 }
         
 const ProgramNode* AST::getRoot() const{

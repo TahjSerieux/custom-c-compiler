@@ -12,15 +12,17 @@
 
 enum class ExpressionType { CONSTANT,UNARY,BINARY };
 enum class StatementType  { RETURN };
-enum class UnaryOperator{Complement, Negation,Error};
+enum class UnaryOperator{Complement, Negation,Error,Unkown};
 enum class BinaryOperator{Add,Subtract,Multiply,Divide,Remainder,Error};
 std::string unary_operator_to_string(UnaryOperator op);
+std::string binary_operator_to_string(BinaryOperator op);
 // ======================================================
 //                     ExpressionNode
 // ======================================================
 class ExpressionNode {
     public:
         virtual void print() = 0;
+        virtual void print(int indent) = 0;
         ExpressionType getType() const;
 
         virtual const std::string getValue() = 0;
@@ -59,6 +61,11 @@ class ConstantNode : public ExpressionNode {
          * 
          */
         void print() override;
+        /**
+         * @brief Prints the value of the ConstantNode in a specific format
+         * 
+         */
+        void print(int indent) override;
         /**
          * @brief Get the Value object
          * 
@@ -111,6 +118,11 @@ class UnaryNode: public ExpressionNode{
          */
         void print() override;
         /**
+         * @brief Prints the value of the UnaryNode
+         * 
+         */
+        void print(int indent) override;
+        /**
          * @brief Get the Value object
          * 
          * @return const std::string 
@@ -137,7 +149,7 @@ class BinaryNode: public ExpressionNode
         ExpressionNode* secondExpression;
 
     public:
-        BinaryNode(BinaryOperator binary_operator,ExpressionNode* firstExpression,ExpressionNode* secondExpression);
+        BinaryNode(ExpressionNode* firstExpression, BinaryOperator binary_operator,ExpressionNode* secondExpression);
         ~BinaryNode();
         ExpressionNode* getFirstExpression();
         ExpressionNode* getSecondExpression();
@@ -148,7 +160,13 @@ class BinaryNode: public ExpressionNode
          * 
          * @return const std::string 
          */
+        
         const std::string getValue() override;
+        /**
+         * @brief Prints the value of the UnaryNode
+         * 
+         */
+        void print(int indent) override;
 };
 
 
@@ -162,6 +180,7 @@ class StatementNode {
     public:
         virtual ~StatementNode() = 0;
         virtual void print() = 0;
+        virtual void print(int indent) = 0;
 
         /**
          * @brief Get the Type object. All derived classes inherits this function.
@@ -202,6 +221,7 @@ class ReturnNode : public StatementNode {
         ReturnNode(ExpressionNode* exp);
 
         void print() override;
+        void print(int indent) override;
         /**
          * @brief Get the Expression object
          * 
@@ -237,6 +257,7 @@ public:
     FunctionNode(std::string identifier, StatementNode* statement);
 
     void print();
+    void print(int indent);
     /**
      * @brief Get the Identifer object
      * 
@@ -256,33 +277,35 @@ public:
 //                     ProgramNode
 // ======================================================
 class ProgramNode {
-private:
-    /**
-     * @brief Vector of type std::vector<FunctionNode*>. Each pointer in the vector
-     * represents a function in the program.
-     * 
-     */
-    std::vector<FunctionNode*> functions;
+    private:
+        /**
+         * @brief Vector of type std::vector<FunctionNode*>. Each pointer in the vector
+         * represents a function in the program.
+         * 
+         */
+        std::vector<FunctionNode*> functions;
 
-public:
-    /**
-     * @brief Construct a new Program Node object
-     * 
-     * @param funcs 
-     */
-    ProgramNode(std::vector<FunctionNode*> funcs);
-    /**
-     * @brief Goes through each Function Node in std::vector<FunctionNode*> functions
-     * each FunctionNode in functions represents a function in the program.
-     * 
-     */
-    void print() const;
-    /**
-     * @brief Get the Functions object
-     * 
-     * @return std::vector<FunctionNode*> 
-     */
-    std::vector<FunctionNode*> getFunctions() const;
+    public:
+        /**
+         * @brief Construct a new Program Node object
+         * 
+         * @param funcs 
+         */
+        ProgramNode(std::vector<FunctionNode*> funcs);
+        /**
+         * @brief Goes through each Function Node in std::vector<FunctionNode*> functions
+         * each FunctionNode in functions represents a function in the program.
+         * 
+         */
+        void print() const;
+
+        void print(int indent) const;
+        /**
+         * @brief Get the Functions object
+         * 
+         * @return std::vector<FunctionNode*> 
+         */
+        std::vector<FunctionNode*> getFunctions() const;
 };
 
 

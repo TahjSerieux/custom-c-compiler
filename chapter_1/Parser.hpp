@@ -21,13 +21,22 @@ class Parser{
          to the next Token performs error checking.
         */
         void expect(TokenType type,std::string value ="");
+        // std::string precedenceClimber();
         std::string parseInt();
+        // BinaryNode* parseBinary();
         UnaryNode* parseUnaryExpression();
         ExpressionNode* parseExpression();
+        ExpressionNode* parseExpression(int minPrecedence);
+        ExpressionNode* parseFactor();
         StatementNode* parseStatement();
         std::string parseIdentifier();
         FunctionNode* parseFunction();
         std::vector<Token>::iterator parserPeek(int pos);
-        int precedneceChecker(Token t);
+        UnaryOperator parseUnaryOperator();
+        int getPrecedence();
+        bool isTokenAUnaryOperator();
+        bool isBinaryOperator();
+        BinaryOperator parseBinaryOperator();
+        void consumeToken();
 };
 #endif

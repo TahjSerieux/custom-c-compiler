@@ -16,10 +16,10 @@
 //                     Base: TackyVal
 // ======================================================
 class TackyVal {
-public:
-    virtual ~TackyVal() = 0;
-    virtual void print() const = 0;
-    virtual void prettyPrint(int indent = 0) const = 0;
+    public:
+        virtual ~TackyVal() = 0;
+        virtual void print() const = 0;
+        virtual void prettyPrint(int indent = 0) const = 0;
 };
 inline TackyVal::~TackyVal() {}
 
@@ -208,6 +208,68 @@ class TackyUnary : public TackyInstruction {
          * @return TackyVal* 
          */
         TackyVal* getSrc();
+        /**
+         * @brief Get the Dst object
+         * 
+         * @return TackyVal* 
+         */
+        TackyVal* getDst();
+
+        void print() const override;
+        void prettyPrint(int indent = 0) const override;
+};
+// ======================================================
+//                     TackyBinary : TackyInstruction
+// ======================================================
+
+class TackyBinary: public TackyInstruction{
+    private:
+        /**
+         * @brief The Binary Operator being performed
+         * 
+         */
+        BinaryOperator binary_operator;
+        /**
+         * @brief The value the first  operand 
+         * 
+         */
+        TackyVal* val1;
+        /**
+         * @brief The value the second  operand 
+         * 
+         */
+        TackyVal* val2;
+        /**
+         * @brief The Destination of the binary Operation
+         * 
+         */
+        TackyVal* dst;
+
+    public:
+        // BinaryTacky(UnaryOperator unary_operator, TackyVal* src, TackyVal* dst);
+        TackyBinary(BinaryOperator binary_operator,TackyVal* val1, TackyVal* val2, TackyVal* dst);
+        ~TackyBinary() override;
+        /**
+         * @brief Get the Unary Operator object
+         * 
+         * @return UnaryOperator 
+         */
+
+        BinaryOperator getBinaryOperator();
+        /**
+         * @brief Get the val1 object
+         * 
+         * @return TackyVal* 
+         */
+
+        TackyVal* getVal1();
+        /**
+         * @brief Get the val2 object
+         * 
+         * @return TackyVal* 
+         */
+
+        TackyVal* getVal2();
         /**
          * @brief Get the Dst object
          * 

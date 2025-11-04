@@ -250,6 +250,9 @@ void UnaryInstruction::print(){
         case UnaryOperator::Negation:
             opStr = "negl";
             break;
+        case UnaryOperator::Unkown:
+            opStr = "Unkown";
+            break;
         default:
             opStr = "unknown_unary";
     }
